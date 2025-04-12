@@ -165,23 +165,22 @@ impl<R: Read> Tokenizer<R> {
         self.position += 1;
         let token = self.read_token(|&b| b == b'\'' || b == b'\n')?;
         let mut token_string = String::from_utf8_lossy(&token).into_owned();
-        self.position += 1;
 
         loop {
-            if token_string.ends_with('\n') {
+            if self.position >= self.length || self.buffer[self.position] != b'\'' {
                 return Err(TokenizerError::ParseError {
                     reason: "Unterminated quoted string".to_string(),
                 });
             }
+            self.position += 1;
 
             if self.position < self.length && self.buffer[self.position] == b'\'' {
                 self.position += 1; // consume the escaped character, so the predicate works
                 token_string.push('\'');
-                
+
                 // read until we find a newline or another quote
                 let continued = self.read_token(|&b| b == b'\'' || b == b'\n')?;
                 token_string.push_str(&String::from_utf8_lossy(&continued));
-                self.position += 1;
             } else {
                 break;
             }
