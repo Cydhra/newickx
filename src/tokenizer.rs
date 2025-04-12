@@ -209,7 +209,7 @@ mod tests {
     use std::path::PathBuf;
 
     #[rstest]
-    fn expect_working(#[files("tests/resources/*.nw")] path: PathBuf) {
+    fn expect_working(#[files("tests/resources/tokenizer/accept/*.nw")] path: PathBuf) {
         // output the file name for easy identification in log files
         println!("Testing file: {:?}", path.file_name().unwrap());
 
