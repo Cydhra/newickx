@@ -22,6 +22,15 @@ pub enum ParseError {
 pub struct Parser<R: Read, B: TreeBuilder> {
     tokenizer: Tokenizer<R>,
     builder: B,
+
+    /// Flag to indicate if the parser has finished parsing the current tree.
+    /// This is used to determine if the parser is expecting a semicolon or an end token,
+    /// or if such a token should be rejected.
+    tree_finished: bool,
+    /// Flag to indicate if the parser is expecting a sibling node before the next closing
+    /// parenthesis. Required to handle cases where a node is defined without a name, branch length or
+    /// support value, but a prior comma has already been consumed.
+    expect_sibling: bool,
 }
 
 impl<R: Read, B: TreeBuilder> Parser<R, B> {
@@ -29,25 +38,29 @@ impl<R: Read, B: TreeBuilder> Parser<R, B> {
         Parser {
             tokenizer: Tokenizer::new(reader),
             builder,
+            tree_finished: true,
+            expect_sibling: false
         }
     }
 
     pub fn parse(&mut self) -> Result<Option<B::Tree>, ParseError> {
         let mut stack = vec![];
-        let mut tree_finished = true;
 
         loop {
             let token = self.tokenizer.next_token().context(InputSnafu {})?;
 
             // mark tree as unfinished if we encounter a token that is not a semicolon or end
             if !matches!(token, Semicolon | End) {
-                tree_finished = false;
+                self.tree_finished = false;
             }
 
             match token {
                 OpenParen => {
                     // push a new node to the stack
                     stack.push(vec![]);
+
+                    // an open parenthesis means we expect at least one child node
+                    self.expect_sibling = true;
                 }
                 CloseParen => {
                     if stack.is_empty() {
@@ -56,6 +69,14 @@ impl<R: Read, B: TreeBuilder> Parser<R, B> {
                             found: token,
                             reason: "No opening parenthesis found prior".to_string(),
                         });
+                    }
+
+                    // if we still expect a sibling, it means we have a node without a name, branch length or
+                    // support value, but a prior comma has already been consumed
+                    if self.expect_sibling {
+                        let anonymous_child = self.builder.add_node(None);
+                        stack.last_mut().unwrap().push((anonymous_child, None, None));
+                        self.expect_sibling = false;
                     }
 
                     let has_info = matches!(self.tokenizer.peek(), Ok(Colon) | Ok(Name(_)) | Ok(Float(_)));
@@ -148,7 +169,8 @@ impl<R: Read, B: TreeBuilder> Parser<R, B> {
                         });
                     }
 
-                    tree_finished = true;
+                    // an end token is now legal
+                    self.tree_finished = true;
                     return Ok(Some(self.builder.build()));
                 }
                 End => {
@@ -158,7 +180,7 @@ impl<R: Read, B: TreeBuilder> Parser<R, B> {
                             found: token,
                             reason: "There are unclosed parentheses".to_string(),
                         });
-                    } else if !tree_finished {
+                    } else if !self.tree_finished {
                         return Err(ParseError::UnexpectedToken {
                             expected: vec![Semicolon],
                             found: token,
@@ -224,13 +246,15 @@ impl<R: Read, B: TreeBuilder> Parser<R, B> {
     }
 
     #[inline]
-    fn consume_trailing_comma(&mut self) -> Result<bool, ParseError> {
+    fn consume_trailing_comma(&mut self) -> Result<(), ParseError> {
         let token = self.tokenizer.peek().context(InputSnafu {})?;
         if matches!(token, Comma) {
             self.tokenizer.next_token().context(InputSnafu {})?;
-            Ok(true)
+            self.expect_sibling = true;
+            Ok(())
         } else if matches!(token, CloseParen | Semicolon) {
-            Ok(false)
+            self.expect_sibling = false;
+            Ok(())
         } else {
             Err(ParseError::UnexpectedToken {
                 expected: vec![Comma, CloseParen, Semicolon],
