@@ -285,6 +285,27 @@ mod tests {
         fn add_edge(&mut self, _parent: Self::NodeId, _child: Self::NodeId, _support: Option<f64>, _branch_length: Option<f64>) {}
     }
 
+    struct OutputTreeBuilder {
+        tree: String
+    }
+
+    impl TreeBuilder for OutputTreeBuilder {
+        type Tree = String;
+        type NodeId = ();
+
+        fn build(&mut self) -> Self::Tree {
+            let mut next_tree = String::new();
+            std::mem::swap(&mut self.tree, &mut next_tree);
+            next_tree
+        }
+
+        fn add_node(&mut self, label: Option<String>) -> Self::NodeId {
+            self.tree.push_str(&label.unwrap_or_else(|| String::from("<anonymous>")));
+        }
+
+        fn add_edge(&mut self, _parent: Self::NodeId, _child: Self::NodeId, _support: Option<f64>, _branch_length: Option<f64>) {}
+    }
+
     #[rstest]
     fn expect_working(#[files("tests/resources/parser/accept/*.nw")] path: PathBuf) {
         // output the file name for easy identification in log files
@@ -307,5 +328,24 @@ mod tests {
         let mut parser = Parser::new(stream, builder);
 
         assert!(parser.parse().is_err(), "Expected parse to fail for file: {:?}", path);
+    }
+
+    #[rstest]
+    fn verify_postorder(#[files("tests/resources/parser/postorder/*.nw")] path: PathBuf) {
+        // output the file name for easy identification in log files
+        println!("Testing file: {:?}", path.file_name().unwrap());
+
+        let mut expected_output = path.clone();
+        expected_output.set_extension("out");
+
+        let stream = File::open(&path).expect("Could not open file");
+        let builder = OutputTreeBuilder { tree: String::new() };
+        let mut parser = Parser::new(stream, builder);
+
+        let mut expected_stream = File::open(expected_output).expect("Could not open expected output file");
+        let mut expected = String::new();
+        expected_stream.read_to_string(&mut expected).expect("Could not read expected output file");
+
+        assert_eq!(parser.parse().expect("Failed to parse file"), Some(expected));
     }
 }
