@@ -143,6 +143,34 @@ impl<R: Read, B: TreeBuilder> Parser<R, B> {
                             reason: "No opening parenthesis found prior".to_string(),
                         });
                     }
+                },
+                Colon => {
+                    // if we encounter a colon, it means there is a nameless leaf node, because otherwise
+                    // we would have encountered the name first, and consumed the branch length
+
+                    let branch_length_token = self.tokenizer.next_token().context(InputSnafu {})?;
+                    let branch_length = if let Float(branch_length) = branch_length_token {
+                        branch_length
+                    } else {
+                        return Err(ParseError::UnexpectedToken {
+                            expected: vec![Float(0.0)],
+                            found: branch_length_token,
+                            reason: "Expected a branch length after colon".to_string(),
+                        });
+                    };
+
+                    self.consume_trailing_comma()?;
+
+                    if let Some(children) = stack.last_mut() {
+                        let node_id = self.builder.add_node(None);
+                        children.push((node_id, None, Some(branch_length)));
+                    } else {
+                        return Err(ParseError::UnexpectedToken {
+                            expected: vec![OpenParen, Semicolon],
+                            found: Float(branch_length),
+                            reason: "No opening parenthesis found prior".to_string(),
+                        });
+                    }
                 }
                 Comma => {
                     // if we encounter a comma, it means there is an unnamed leaf node, because otherwise
