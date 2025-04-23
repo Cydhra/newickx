@@ -91,6 +91,9 @@ impl<R: Read, B: TreeBuilder> Parser<R, B> {
                         node_label = label;
                         node_support = support;
                         node_branch_length = branch_length;
+                    } else {
+                        // consume trailing comma if present
+                        self.consume_trailing_comma()?;
                     }
 
                     // pop children from the stack and append to the current node
