@@ -149,6 +149,10 @@ impl<R: Read, B: TreeBuilder> Parser<R, B> {
                     // add a leaf node
                     let node_id = self.builder.add_node(None);
 
+                    // there has to be at least one more node, but expect_sibling must be already
+                    // set to true at this point
+                    debug_assert!(self.expect_sibling == true);
+
                     // push current edge to the parent children
                     if let Some(children) = stack.last_mut() {
                         children.push((node_id, None, None));
