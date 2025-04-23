@@ -12,8 +12,7 @@ pub enum ParseError {
     InputError { source: TokenizerError },
 
     /// Unexpected token in the input stream
-    #[snafu(display("Unexpected token: found {found} but expected one of {expected}"))]
-    UnexpectedToken {
+     UnexpectedToken {
         expected: Vec<Token>,
         found: Token
     },
