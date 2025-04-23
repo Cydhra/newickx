@@ -12,7 +12,7 @@ pub enum ParseError {
     InputError { source: TokenizerError },
 
     /// Unexpected token in the input stream
-     UnexpectedToken {
+    UnexpectedToken {
         expected: Vec<Token>,
         found: Token,
         reason: String,
@@ -34,6 +34,7 @@ pub struct Parser<R: Read, B: TreeBuilder> {
 }
 
 impl<R: Read, B: TreeBuilder> Parser<R, B> {
+    /// Create a new parser instance with the given newick input stream and a tree builder instance.
     pub fn new(reader: R, builder: B) -> Self {
         Parser {
             tokenizer: Tokenizer::new(reader),
@@ -43,6 +44,11 @@ impl<R: Read, B: TreeBuilder> Parser<R, B> {
         }
     }
 
+    /// Parse the input stream and build a tree structure.
+    /// Consumes the input stream until a semicolon or end token is encountered,
+    /// and builds a tree structure from the tokens.
+    /// If more non-end tokens are encountered after a semicolon,
+    /// the parser can be called again to parse the next tree.
     pub fn parse(&mut self) -> Result<Option<B::Tree>, ParseError> {
         let mut stack = vec![];
 
@@ -235,6 +241,9 @@ impl<R: Read, B: TreeBuilder> Parser<R, B> {
         }
     }
 
+    /// Consume a node label or support value if present, a branch length if present, and a trailing comma if present.
+    /// If a comma is consumed, the parser expects a sibling node next, ensuring that a following
+    /// closing parenthesis implicitly adds an anonymous node.
     #[inline]
     fn consume_named_node_info(&mut self) -> Result<(Option<String>, Option<f64>, Option<f64>), ParseError> {
         let mut node_label = None;
@@ -256,6 +265,9 @@ impl<R: Read, B: TreeBuilder> Parser<R, B> {
         Ok((node_label, node_support, node_branch_length))
     }
 
+    /// Consume a branch length if present.
+    /// Regardless of whether a branch length is present or not, the parser calls
+    /// [`consume_trailing_comma`] afterward.
     #[inline]
     fn consume_branch_length(&mut self) -> Result<Option<f64>, ParseError> {
         let mut node_branch_length = None;
@@ -282,6 +294,9 @@ impl<R: Read, B: TreeBuilder> Parser<R, B> {
         Ok(node_branch_length)
     }
 
+    /// Consume a trailing comma if present.
+    /// If a comma is consumed, the parser expects a sibling node next, ensuring that a following
+    /// closing parenthesis implicitly adds an anonymous node.
     #[inline]
     fn consume_trailing_comma(&mut self) -> Result<(), ParseError> {
         let token = self.tokenizer.peek().context(InputSnafu {})?;
