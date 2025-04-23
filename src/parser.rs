@@ -12,9 +12,9 @@ pub enum ParseError {
     InputError { source: TokenizerError },
 
     /// Unexpected token in the input stream
-    #[snafu(display("Unexpected token: found {found} but expected {expected}"))]
+    #[snafu(display("Unexpected token: found {found} but expected one of {expected}"))]
     UnexpectedToken {
-        expected: Token,
+        expected: Vec<Token>,
         found: Token
     },
 }
@@ -32,21 +32,102 @@ impl<R: Read, B: TreeBuilder> Parser<R, B> {
         }
     }
 
-    pub fn parse(&mut self) -> Result<B::Tree, ParseError> {
-        self.parse_tree()
-    }
-
-    fn parse_tree(&mut self) -> Result<B::Tree, ParseError> {
+    pub fn parse(&mut self) -> Result<Option<B::Tree>, ParseError> {
         let token = self.tokenizer.next_token().context(InputSnafu {})?;
-        
         if matches!(token, Semicolon) {
-            Ok(self.builder.build_empty_tree())
+            Ok(Some(self.builder.build()))
         } else if matches!(token, OpenParen) {
-            // parse loop
-            Ok(self.builder.build_empty_tree())
+            let mut stack = vec![];
+            stack.push(vec![]);
+            loop {
+                let token = self.tokenizer.next_token().context(InputSnafu {})?;
+                if matches!(token, OpenParen) {
+                    stack.push(vec![]);
+                } else if matches!(token, CloseParen) {
+                    if stack.is_empty() {
+                        return Err(ParseError::UnexpectedToken {
+                            expected: vec![Semicolon],
+                            found: token,
+                        });
+                    }
+
+                    let has_info = matches!(self.tokenizer.peek(), Ok(Colon) | Ok(Name(_)) | Ok(Float(_)));
+                    let mut node_label = None;
+                    let mut node_support = None;
+                    let mut node_branch_length = None;
+
+                    // check if the next token is a colon, name, or float, and if so, parse the node
+                    // label, support, and branch length
+                    if has_info {
+                        // parse node label, support, and branch length
+                        let mut token = self.tokenizer.next_token().context(InputSnafu {})?;
+                        if let Name(label) = token {
+                            node_label = Some(label);
+                            token = self.tokenizer.next_token().context(InputSnafu {})?;
+                        } else if let Float(support) = token {
+                            node_support = Some(support);
+                            token = self.tokenizer.next_token().context(InputSnafu {})?;
+                        }
+
+                        if let Colon = token {
+                            // Ignore colon
+                            let branch_length_token = self.tokenizer.next_token().context(InputSnafu {})?;
+                            if let Float(branch_length) = branch_length_token {
+                                node_branch_length = Some(branch_length);
+                            } else {
+                                return Err(ParseError::UnexpectedToken {
+                                    expected: vec![Float(0.0)],
+                                    found: branch_length_token,
+                                });
+                            }
+                        }
+                    }
+
+                    // pop children from the stack and append to the current node
+                    let children = stack.pop().unwrap();
+                    let node_id = self.builder.add_node(node_label);
+                    for (child, branch_support, branch_length) in children {
+                        self.builder.add_edge(node_id.clone(), child, branch_support, branch_length);
+                    }
+
+                    // push current edge to the parent children
+                    if let Some(children) = stack.last_mut() {
+                        children.push((node_id, node_support, node_branch_length));
+                    }
+
+                    // read away a trailing comma if present
+                    let token = self.tokenizer.peek().context(InputSnafu {})?;
+                    if matches!(token, Comma) {
+                        self.tokenizer.next_token().context(InputSnafu {})?;
+                    }
+                } else if matches!(token, Semicolon) {
+                    return Ok(Some(self.builder.build()));
+                } else if matches!(token, Comma) {
+                    // if we encounter a comma, it means there is a leaf node, because otherwise
+                    // we would have encountered a close parenthesis first, and consumed the
+                    // comma
+
+                    // add a leaf node
+                    let node_id = self.builder.add_node(None);
+
+                    // push current edge to the parent children
+                    if let Some(children) = stack.last_mut() {
+                        children.push((node_id, None, None));
+                    }
+                } else {
+                    return Err(ParseError::UnexpectedToken {
+                        expected: vec![OpenParen, CloseParen, Semicolon],
+                        found: token,
+                    });
+                }
+            }
+
+            Ok(Some(self.builder.build()))
+        } else if matches!(token, End) {
+            Ok(None)
         } else {
             Err(ParseError::UnexpectedToken {
-                expected: OpenParen,
+                expected: vec![OpenParen, Semicolon],
                 found: token,
             })
         }
