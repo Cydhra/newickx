@@ -1,11 +1,11 @@
 OpenParen
-String("BC")
+Name("BC")
 Comma
-String("D  D")
+Name("D  D")
 Comma
-String("()")
+Name("()")
 CloseParen
-String("A")
+Name("A")
 Semicolon
-String(";")
+Name(";")
 End

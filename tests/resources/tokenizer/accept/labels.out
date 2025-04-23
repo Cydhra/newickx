@@ -1,8 +1,8 @@
 OpenParen
-String("BC")
+Name("BC")
 Comma
-String("D")
+Name("D")
 CloseParen
-String("A")
+Name("A")
 Semicolon
 End

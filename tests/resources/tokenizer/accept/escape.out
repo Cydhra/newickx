@@ -1,2 +1,2 @@
-String("These quotation marks are escaped: 'Hello'")
+Name("These quotation marks are escaped: 'Hello'")
 End
