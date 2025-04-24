@@ -107,6 +107,11 @@ impl TreeNode {
     pub fn edges(&self) -> &[DirectedEdge] {
         &self.edges
     }
+
+    /// Returns true, if the node is a tip (leaf) node.
+    pub fn is_tip(&self) -> bool {
+        self.edges.len() == 1
+    }
 }
 
 /// A directed edge in the tree.
