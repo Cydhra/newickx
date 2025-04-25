@@ -62,8 +62,9 @@ impl UnrootedTree {
         self.virtual_root
     }
 
-    /// Generate a post-order traversal of the tree starting from the specified root node.
-    pub fn post_order(&self, root: NodeId) -> Vec<NodeId> {
+    /// Generate a postorder traversal order of the tree starting from the specified root node.
+    /// The order is a list of node IDs in the order they are to be traversed.
+    pub fn postorder(&self, root: NodeId) -> Vec<NodeId> {
         let mut order = Vec::with_capacity(self.node_count());
         let mut stack = Vec::with_capacity(self.node_count() << 1);
         stack.push((root, root));
@@ -239,7 +240,7 @@ mod tests {
         assert_eq!(tree.node(node3).edges()[0].support, Some(0.8));
         assert_eq!(tree.node(node3).edges()[0].branch_length, Some(0.3));
 
-        assert_eq!(tree.post_order(2), vec![node3, node2, node1]);
+        assert_eq!(tree.postorder(2), vec![node3, node2, node1]);
     }
 
     #[test]
@@ -279,6 +280,6 @@ mod tests {
         assert_eq!(tree.node(4).edges()[1].target, 3);
         assert_eq!(tree.node(4).edges()[1].branch_length, Some(0.1));
 
-        assert_eq!(tree.post_order(4), vec![0, 1, 2, 3, 4]);
+        assert_eq!(tree.postorder(4), vec![0, 1, 2, 3, 4]);
     }
 }
