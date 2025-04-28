@@ -62,6 +62,11 @@ impl UnrootedTree {
         self.nodes.iter()
     }
 
+    /// Returns a mutable iterator over all nodes in the tree in arbitrary order.
+    pub fn nodes_mut(&mut self) -> impl Iterator<Item = &mut TreeNode> {
+        self.nodes.iter_mut()
+    }
+
     /// Returns the virtual root of the tree.
     /// Returns `None` if the tree has no virtual root.
     pub fn virtual_root(&self) -> Option<NodeId> {
