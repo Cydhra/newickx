@@ -21,7 +21,7 @@ pub enum TokenizerError {
     ParseError { reason: String },
 }
 
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, PartialEq)]
 pub enum Token {
     Float(f64),
     Name(String),
@@ -301,5 +301,26 @@ mod tests {
                 break;
             }
         }
+    }
+
+    #[test]
+    fn test_reading_past_buffer() {
+        let mut input = String::from("()");
+        let mut name = String::new();
+        for _ in 0..BUFFER_SIZE {
+            name.push('A');
+        }
+        input.push_str(&name);
+        input.push(';');
+
+        let mut tokenizer = Tokenizer::new(input.as_bytes());
+        let Ok(paren_left) = tokenizer.next_token() else { panic!("did not find open parenthesis") };
+        assert_eq!(paren_left, Token::OpenParen);
+        let Ok(paren_right) = tokenizer.next_token() else { panic!("did not find closing parenthesis") };
+        assert_eq!(paren_right, Token::CloseParen);
+        let Ok(name_token) = tokenizer.next_token() else { panic!("did not find name") };
+        assert_eq!(name_token, Token::Name(name));
+        let Ok(semicolon) = tokenizer.next_token() else { panic!("did not find semicolon") };
+        assert_eq!(semicolon, Token::Semicolon);
     }
 }
