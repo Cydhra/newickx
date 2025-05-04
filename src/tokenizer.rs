@@ -181,7 +181,7 @@ impl<R: Read> Tokenizer<R> {
             b.is_ascii_whitespace() || b == b',' || b == b';' || b == b':' || b == b'(' || b == b')'
         })?;
         Ok(Token::Name(
-            String::from_utf8_lossy(&token).replace('_', " ").into(),
+            String::from_utf8_lossy(&token).replace('_', " "),
         ))
     }
 
