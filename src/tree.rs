@@ -32,7 +32,7 @@ pub struct NTree {
 }
 
 impl NTree {
-    /// Creates a new `UnrootedTree` with no nodes.
+    /// Creates a new `NTree` with no nodes.
     fn new() -> Self {
         NTree {
             nodes: Vec::new(),
@@ -40,7 +40,7 @@ impl NTree {
         }
     }
 
-    /// Creates a new `UnrootedTree` with the specified node capacity, ensuring no reallocation occurs
+    /// Creates a new `NTree` with the specified node capacity, ensuring no reallocation occurs
     /// when adding nodes up to that capacity.
     fn with_capacity(capacity: usize) -> Self {
         NTree {
@@ -163,11 +163,11 @@ impl DirectedEdge {
     }
 }
 
-/// A [`TreeBuilder`] implementation for creating [`UnrootedTree`]s for use in the [`Parser`].
+/// A [`TreeBuilder`] implementation for creating [`NTree`]s for use in the [`Parser`].
 ///
 /// [`TreeBuilder`]: crate::TreeBuilder
 /// [`Parser`]: crate::parser::Parser
-/// [`UnrootedTree`]: NTree
+/// [`NTree`]: NTree
 pub struct SimpleTreeBuilder {
     tree: NTree,
 }
