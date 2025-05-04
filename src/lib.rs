@@ -21,7 +21,10 @@ pub trait TreeBuilder {
     /// Add a node to the tree. It will not be connected to the tree yet.
     /// The node ID is returned, which can be used to uniquely identify the node in the tree.
     /// The node ID of a node must not change once the node has been added to the tree.
-    fn add_node(&mut self, label: Option<String>) -> Self::NodeId;
+    ///
+    /// The `edge_hint` parameter is used to provide a hint for the number of edges
+    /// that will be added to the node during the parsing process.
+    fn add_node(&mut self, label: Option<String>, edge_hint: usize) -> Self::NodeId;
 
     /// Add an edge between two existing nodes in the tree.
     /// The assignment of parent and child is arbitrary if the tree is unrooted.

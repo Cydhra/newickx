@@ -81,7 +81,7 @@ impl<R: Read, B: TreeBuilder> Parser<R, B> {
                     // if we still expect a sibling, it means we have a node without a name, branch length or
                     // support value, but a prior comma has already been consumed
                     if self.expect_sibling {
-                        let anonymous_child = self.builder.add_node(None);
+                        let anonymous_child = self.builder.add_node(None, 1);
                         stack
                             .last_mut()
                             .unwrap()
@@ -111,7 +111,7 @@ impl<R: Read, B: TreeBuilder> Parser<R, B> {
 
                     // pop children from the stack and append to the current node
                     let children = stack.pop().unwrap();
-                    let node_id = self.builder.add_node(node_label);
+                    let node_id = self.builder.add_node(node_label, children.len() + 1);
                     for (child, branch_support, branch_length) in children {
                         self.builder.add_edge(
                             node_id.clone(),
@@ -137,7 +137,7 @@ impl<R: Read, B: TreeBuilder> Parser<R, B> {
 
                     // push leaf node to the parent children
                     if let Some(children) = stack.last_mut() {
-                        let node_id = self.builder.add_node(Some(name));
+                        let node_id = self.builder.add_node(Some(name), 1);
                         children.push((node_id, None, branch_length));
                     } else {
                         return Err(ParseError::UnexpectedToken {
@@ -155,7 +155,7 @@ impl<R: Read, B: TreeBuilder> Parser<R, B> {
 
                     // push leaf node to the parent children
                     if let Some(children) = stack.last_mut() {
-                        let node_id = self.builder.add_node(None);
+                        let node_id = self.builder.add_node(None, 1);
                         children.push((node_id, Some(support), branch_length));
                     } else {
                         return Err(ParseError::UnexpectedToken {
@@ -183,7 +183,7 @@ impl<R: Read, B: TreeBuilder> Parser<R, B> {
                     self.consume_trailing_comma()?;
 
                     if let Some(children) = stack.last_mut() {
-                        let node_id = self.builder.add_node(None);
+                        let node_id = self.builder.add_node(None, 1);
                         children.push((node_id, None, Some(branch_length)));
                     } else {
                         return Err(ParseError::UnexpectedToken {
@@ -199,7 +199,7 @@ impl<R: Read, B: TreeBuilder> Parser<R, B> {
                     // comma
 
                     // add a leaf node
-                    let node_id = self.builder.add_node(None);
+                    let node_id = self.builder.add_node(None, 1);
 
                     // push current edge to the parent children
                     if let Some(children) = stack.last_mut() {
@@ -343,7 +343,7 @@ mod tests {
 
         fn build(&mut self) -> Self::Tree {}
 
-        fn add_node(&mut self, _label: Option<String>) -> Self::NodeId {}
+        fn add_node(&mut self, _label: Option<String>, _edge_hint: usize) -> Self::NodeId {}
 
         fn add_edge(
             &mut self,
@@ -377,7 +377,7 @@ mod tests {
             next_tree
         }
 
-        fn add_node(&mut self, label: Option<String>) -> Self::NodeId {
+        fn add_node(&mut self, label: Option<String>, _edge_hint: usize) -> Self::NodeId {
             self.tree
                 .push_str(&label.unwrap_or_else(|| String::from("<anonymous>")));
         }

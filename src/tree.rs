@@ -125,6 +125,14 @@ impl TreeNode {
         }
     }
 
+    /// Creates a new `TreeNode` with the specified label and a specified capacity for edges.
+    pub fn with_capacity(label: Option<String>, capacity: usize) -> Self {
+        TreeNode {
+            label,
+            edges: Vec::with_capacity(capacity),
+        }
+    }
+
     /// Returns the edges of the node.
     pub fn edges(&self) -> &[DirectedEdge] {
         &self.edges
@@ -199,9 +207,9 @@ impl TreeBuilder for SimpleTreeBuilder {
         new_tree
     }
 
-    fn add_node(&mut self, label: Option<String>) -> Self::NodeId {
+    fn add_node(&mut self, label: Option<String>, edge_hint: usize) -> Self::NodeId {
         let node_id = self.tree.nodes.len();
-        self.tree.nodes.push(TreeNode::new(label));
+        self.tree.nodes.push(TreeNode::with_capacity(label, edge_hint));
         node_id
     }
 
@@ -262,9 +270,9 @@ mod tests {
     #[test]
     fn test_tree_builder() {
         let mut builder = SimpleTreeBuilder::new();
-        let node3 = builder.add_node(Some("C".to_string()));
-        let node2 = builder.add_node(Some("B".to_string()));
-        let node1 = builder.add_node(Some("A".to_string()));
+        let node3 = builder.add_node(Some("C".to_string()), 0);
+        let node2 = builder.add_node(Some("B".to_string()), 1);
+        let node1 = builder.add_node(Some("A".to_string()), 1);
 
         builder.add_edge(node1, node2, Some(0.9), Some(0.5));
         builder.add_edge(node2, node3, Some(0.8), Some(0.3));
