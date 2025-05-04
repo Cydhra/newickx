@@ -113,6 +113,9 @@ impl NTree {
 #[derive(Clone, Debug)]
 pub struct TreeNode {
     pub label: Option<String>,
+    #[cfg(feature = "smallvec")]
+    edges: smallvec::SmallVec<[DirectedEdge; 3]>,
+    #[cfg(not(feature = "smallvec"))]
     edges: Vec<DirectedEdge>,
 }
 
@@ -121,6 +124,9 @@ impl TreeNode {
     pub fn new(label: Option<String>) -> Self {
         TreeNode {
             label,
+            #[cfg(feature = "smallvec")]
+            edges: smallvec::SmallVec::new(),
+            #[cfg(not(feature = "smallvec"))]
             edges: Vec::new(),
         }
     }
@@ -129,6 +135,9 @@ impl TreeNode {
     pub fn with_capacity(label: Option<String>, capacity: usize) -> Self {
         TreeNode {
             label,
+            #[cfg(feature = "smallvec")]
+            edges: smallvec::SmallVec::with_capacity(capacity),
+            #[cfg(not(feature = "smallvec"))]
             edges: Vec::with_capacity(capacity),
         }
     }
