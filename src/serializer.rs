@@ -164,7 +164,7 @@ mod tests {
             .expect("Could not read file");
         let mut parser = Parser::new(newick.as_bytes(), SimpleTreeBuilder::new());
         let tree = parser.parse().unwrap().expect("Parse Error");
-        let serializer = Serializer::<UnrootedTree>::new();
+        let serializer = Serializer::<NTree>::new();
         let serialized = serializer.serialize(&tree);
         assert_eq!(serialized, newick);
     }
