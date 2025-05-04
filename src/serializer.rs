@@ -124,8 +124,8 @@ impl<T: TreeSerialize> Serializer<T> {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::tree::{SimpleTreeBuilder, NTree};
     use crate::parser::Parser;
-    use crate::tree::{SimpleTreeBuilder, UnrootedTree};
     use rstest::rstest;
     use std::fs::File;
     use std::io::Read;
@@ -136,7 +136,7 @@ mod tests {
         let newick = "(A:0.1,B:0.2,(C:0.3,D:0.4):0.5);";
         let mut parser = Parser::new(newick.as_bytes(), SimpleTreeBuilder::new());
         let tree = parser.parse().unwrap().expect("Parse Error");
-        let serializer = Serializer::<UnrootedTree>::new();
+        let serializer = Serializer::<NTree>::new();
         let serialized = serializer.serialize(&tree);
         assert_eq!(serialized, newick);
     }
@@ -146,7 +146,7 @@ mod tests {
         let newick = "(:0.1,:0.2,(,D:0.4)F);";
         let mut parser = Parser::new(newick.as_bytes(), SimpleTreeBuilder::new());
         let tree = parser.parse().unwrap().expect("Parse Error");
-        let serializer = Serializer::<UnrootedTree>::new();
+        let serializer = Serializer::<NTree>::new();
         let serialized = serializer.serialize(&tree);
         assert_eq!(serialized, newick);
     }

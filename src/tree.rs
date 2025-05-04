@@ -10,22 +10,31 @@ pub type NodeId = usize;
 /// The order is not guaranteed to visit each node, or to visit a node just once.
 pub type TraversalOrder = [NodeId];
 
-/// A simple unrooted tree structure.
+/// A simple (unrooted) tree structure.
 /// The tree is represented as a vector of nodes, where each node contains a label and a list of
 /// edges.
 /// The edges are represented as directed edges, meaning each edge exists twice: once for each
 /// direction.
-/// Consequently, modification requires finding and modifying both edges.
+/// Consequently, modifications to the tree topology require finding and modifying both edges.
+///
+/// The tree can be unrooted, in which case a virtual root is used, which points to one of the
+/// tree's nodes.
+/// This is why the tree has each edge twice, as (re-)rooting the tree changes the traversal direction
+/// of some edges.
+///
+/// The tree does not contain any additional information that cannot be stored in the newick format.
+/// Consequently, the structure is both `Send` and `Sync`, and parsing from and serializing to newick
+/// is efficient.
 #[derive(Clone, Debug)]
-pub struct UnrootedTree {
+pub struct NTree {
     nodes: Vec<TreeNode>,
     virtual_root: Option<NodeId>,
 }
 
-impl UnrootedTree {
+impl NTree {
     /// Creates a new `UnrootedTree` with no nodes.
     fn new() -> Self {
-        UnrootedTree {
+        NTree {
             nodes: Vec::new(),
             virtual_root: None,
         }
@@ -34,7 +43,7 @@ impl UnrootedTree {
     /// Creates a new `UnrootedTree` with the specified node capacity, ensuring no reallocation occurs
     /// when adding nodes up to that capacity.
     fn with_capacity(capacity: usize) -> Self {
-        UnrootedTree {
+        NTree {
             nodes: Vec::with_capacity(capacity),
             virtual_root: None,
         }
@@ -158,16 +167,16 @@ impl DirectedEdge {
 ///
 /// [`TreeBuilder`]: crate::TreeBuilder
 /// [`Parser`]: crate::parser::Parser
-/// [`UnrootedTree`]: UnrootedTree
+/// [`UnrootedTree`]: NTree
 pub struct SimpleTreeBuilder {
-    tree: UnrootedTree,
+    tree: NTree,
 }
 
 impl SimpleTreeBuilder {
     /// Creates a new `SimpleTreeBuilder` with no nodes.
     pub fn new() -> Self {
         SimpleTreeBuilder {
-            tree: UnrootedTree::new(),
+            tree: NTree::new(),
         }
     }
 
@@ -175,17 +184,17 @@ impl SimpleTreeBuilder {
     /// occurs when adding nodes up to that capacity.
     pub fn with_capacity(capacity: usize) -> Self {
         SimpleTreeBuilder {
-            tree: UnrootedTree::with_capacity(capacity),
+            tree: NTree::with_capacity(capacity),
         }
     }
 }
 
 impl TreeBuilder for SimpleTreeBuilder {
-    type Tree = UnrootedTree;
+    type Tree = NTree;
     type NodeId = NodeId;
 
     fn build(&mut self) -> Self::Tree {
-        let mut new_tree = UnrootedTree::new();
+        let mut new_tree = NTree::new();
         mem::swap(&mut self.tree, &mut new_tree);
         new_tree
     }
@@ -213,7 +222,7 @@ impl TreeBuilder for SimpleTreeBuilder {
     }
 }
 
-impl TreeSerialize for UnrootedTree {
+impl TreeSerialize for NTree {
     type NodeId = NodeId;
 
     fn get_virtual_root(&self) -> Option<Self::NodeId> {
