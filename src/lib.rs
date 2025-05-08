@@ -40,7 +40,7 @@ pub trait TreeBuilder {
 /// The trait is used by the Serializer to create newick data from tree structures.
 /// Implementations of the trait allow the serializer to work with different tree data structures.
 pub trait TreeSerialize {
-    type NodeId: Clone;
+    type NodeId: Copy;
 
     /// Get the (virtual) root node of the tree.
     fn get_virtual_root(&self) -> Option<Self::NodeId>;
@@ -57,7 +57,7 @@ pub trait TreeSerialize {
     /// Get the children of a node in the tree, given the parent node. The iterator must not
     /// include an edge to the parent node.
     /// The iterator returns tuples of the form (child_node_id, support, branch_length).
-    fn get_children(&self, parent: Self::NodeId, node: &Self::NodeId) -> impl Iterator<Item = (&Self::NodeId, Option<f64>, Option<f64>)>;
+    fn get_children(&self, parent: Self::NodeId, node: Self::NodeId) -> impl Iterator<Item = (&Self::NodeId, Option<f64>, Option<f64>)>;
 
     /// Get the label of a node in the tree.
     fn get_label(&self, node: &Self::NodeId) -> Option<&String>;

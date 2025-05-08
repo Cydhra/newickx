@@ -54,7 +54,7 @@ impl<T: TreeSerialize> Serializer<T> {
         let mut result = String::new();
         let mut stack = Vec::new();
         let mut children = tree
-            .get_children(root.as_ref().unwrap(), root.as_ref().unwrap())
+            .get_children(root.unwrap(), root.unwrap())
             .peekable();
 
         if children.peek().is_none() {
@@ -80,7 +80,7 @@ impl<T: TreeSerialize> Serializer<T> {
         loop {
             let node = stack.last_mut().unwrap();
             if let Some((child_id, support, branch_length)) = node.children.next() {
-                let mut children = tree.get_children(node.id, child_id).peekable();
+                let mut children = tree.get_children(*node.id, *child_id).peekable();
                 if children.peek().is_some() {
                     result.push('(');
                     stack.push(Node {

@@ -271,8 +271,8 @@ impl TreeSerialize for NTree {
         self.virtual_root.as_ref().and_then(|e| e.branch_length)
     }
 
-    fn get_children<'a>(&'a self, parent: Self::NodeId, node: &'_ Self::NodeId) -> impl Iterator<Item = (&'a Self::NodeId, Option<f64>, Option<f64>)> {
-        self.nodes[*node].edges.iter().filter_map(move |edge| {
+    fn get_children(&self, parent: Self::NodeId, node: Self::NodeId) -> impl Iterator<Item = (&Self::NodeId, Option<f64>, Option<f64>)> {
+        self.nodes[node].edges.iter().filter_map(move |edge| {
             if edge.target == parent {
                 return None;
             }
