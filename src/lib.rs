@@ -57,7 +57,7 @@ pub trait TreeSerialize {
     /// Get the children of a node in the tree, given the parent node. The iterator must not
     /// include an edge to the parent node.
     /// The iterator returns tuples of the form (child_node_id, support, branch_length).
-    fn get_children(&self, parent: &Self::NodeId, node: &Self::NodeId) -> impl Iterator<Item = (&Self::NodeId, Option<f64>, Option<f64>)>;
+    fn get_children(&self, parent: Self::NodeId, node: &Self::NodeId) -> impl Iterator<Item = (&Self::NodeId, Option<f64>, Option<f64>)>;
 
     /// Get the label of a node in the tree.
     fn get_label(&self, node: &Self::NodeId) -> Option<&String>;
