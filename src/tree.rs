@@ -76,6 +76,13 @@ impl NTree {
         self.nodes.iter_mut()
     }
 
+    /// Returns an iterator over the nodes in the tree in the specified traversal order.
+    /// The order is a list of node IDs in the order they are to be traversed.
+    /// The order is not guaranteed to visit each node, or to visit a node just once.
+    pub fn traverse(&self, order: &TraversalOrder) -> impl Iterator<Item = &TreeNode> {
+        order.iter().map(|&id| &self.nodes[id])
+    }
+
     /// Returns the virtual root of the tree.
     /// Returns `None` if the tree has no virtual root.
     pub fn virtual_root(&self) -> Option<NodeId> {
@@ -84,6 +91,13 @@ impl NTree {
 
     /// Generate a postorder traversal order of the tree starting from the specified root node.
     /// The order is a list of node IDs in the order they are to be traversed.
+    ///
+    /// This function's return value is intended to be used with the [`traverse`] method.
+    /// Note, that due to the nature of mutability in Rust, a mutable version of [`traverse`] cannot be
+    /// provided. You can manually implement it using the [`node_mut`] method.
+    ///
+    /// [`traverse`]: NTree::traverse
+    /// [`node_mut`]: NTree::node_mut
     pub fn postorder(&self, root: NodeId) -> Vec<NodeId> {
         let mut order = Vec::with_capacity(self.node_count());
         let mut stack = Vec::with_capacity(self.node_count() << 1);
