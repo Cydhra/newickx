@@ -145,6 +145,13 @@ impl NTree {
         })
     }
 
+    /// Returns a traversal order of the nodes in the tree in an unspecified order,
+    /// but guaranteed to visit each node exactly once (and cache-friendly).
+    /// This is intended for use with the [`traverse`] method.
+    pub fn any_order(&self) -> Vec<NodeId> {
+        (0..self.node_count()).collect()
+    }
+
     /// Returns the length of the tree, which is the number of nodes in the tree.
     /// This is equivalent to the `node_count()` method.
     pub fn len(&self) -> usize {
