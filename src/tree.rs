@@ -169,6 +169,39 @@ impl NTree {
         })
     }
 
+    /// Generate a preorder traversal order of the tree starting from the specified root node.
+    /// The order is a list of node IDs in the order they are to be traversed.
+    ///
+    /// This function's return value is intended to be used with the [`traverse`] method.
+    /// Note, that due to the nature of mutability in Rust, a mutable version of [`traverse`] cannot be
+    /// provided. You can manually implement it using the [`node_mut`] method.
+    ///
+    /// [`traverse`]: NTree::traverse
+    /// [`node_mut`]: NTree::node_mut
+    pub fn preorder(&self, root: NodeId) -> Vec<NodeId> {
+        let mut order = Vec::with_capacity(self.node_count());
+        let mut stack = Vec::with_capacity(self.node_count() << 1);
+        stack.push((root, root));
+
+        while let Some((parent, node)) = stack.pop() {
+            order.push(node);
+            let start = stack.len();
+
+            for edge in self.nodes[node].edges() {
+                if edge.target() != parent {
+                    stack.push((node, edge.target()));
+                }
+            }
+
+            // reverse the order sibling nodes are visited, so we visit the first sibling in the
+            // array first
+            let end = stack.len();
+            stack[start..end].reverse();
+        }
+
+        order
+    }
+
     /// Returns a traversal order of the nodes in the tree in an unspecified order,
     /// but guaranteed to visit each node exactly once (and cache-friendly).
     /// This is intended for use with the [`traverse`] method.
