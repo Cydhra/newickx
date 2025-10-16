@@ -34,7 +34,8 @@ impl<T: TreeSerialize> Serializer<T> {
         branch_length: Option<f64>,
     ) {
         if let Some(label) = label {
-            result.push_str(&format!("{}", label));
+            // TODO properly sanitize and encode the label
+            result.push_str(&format!("{}", label.replace(' ', "_")));
         } else if let Some(support) = support {
             result.push_str(&format!("{}", support));
         }
@@ -53,9 +54,7 @@ impl<T: TreeSerialize> Serializer<T> {
 
         let mut result = String::new();
         let mut stack = Vec::new();
-        let mut children = tree
-            .get_children(root.unwrap(), root.unwrap())
-            .peekable();
+        let mut children = tree.get_children(root.unwrap(), root.unwrap()).peekable();
 
         if children.peek().is_none() {
             Self::push_node_data(
@@ -124,8 +123,8 @@ impl<T: TreeSerialize> Serializer<T> {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::tree::{SimpleTreeBuilder, NTree};
     use crate::parser::Parser;
+    use crate::tree::{NTree, SimpleTreeBuilder};
     use rstest::rstest;
     use std::fs::File;
     use std::io::Read;
