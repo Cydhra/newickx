@@ -132,35 +132,20 @@ impl NTree {
     pub fn edge_postorder(&self, root: NodeId) -> impl Iterator<Item = (NodeId, DirectedEdge)> {
         let mut stack = Vec::with_capacity(self.node_count() << 1);
         stack.push((
-            (
-                root,
-                root,
-                self.get_tree_support(),
-                self.get_tree_branch_length(),
-            ),
+            (root, root, self.get_tree_support(), self.get_tree_branch_length()),
             self.get_children(root, root),
         ));
         iter::from_fn(move || {
             loop {
-                if let Some(((parent_id, node_id, support, branch_length), mut children)) =
-                    stack.pop()
-                {
+                if let Some(((parent_id, node_id, support, branch_length), mut children)) = stack.pop() {
                     if let Some((child_id, child_support, child_branch_length)) = children.next() {
                         stack.push(((parent_id, node_id, support, branch_length), children));
                         stack.push((
-                            (
-                                node_id,
-                                *child_id,
-                                child_support.clone(),
-                                child_branch_length.clone(),
-                            ),
+                            (node_id, *child_id, child_support.clone(), child_branch_length.clone()),
                             self.get_children(node_id, *child_id),
                         ));
                     } else {
-                        return Some((
-                            parent_id,
-                            DirectedEdge::new(node_id, support, branch_length),
-                        ));
+                        return Some((parent_id, DirectedEdge::new(node_id, support, branch_length)));
                     }
                 } else {
                     return None;
@@ -218,6 +203,11 @@ impl NTree {
     /// This is equivalent to the `node_count()` method.
     pub fn len(&self) -> usize {
         self.node_count()
+    }
+
+    /// Returns true if the tree contains no nodes.
+    pub fn is_empty(&self) -> bool {
+        self.len() == 0
     }
 }
 
@@ -336,9 +326,7 @@ impl TreeBuilder for SimpleTreeBuilder {
 
     fn add_node(&mut self, label: Option<String>, edge_hint: usize) -> Self::NodeId {
         let node_id = self.tree.nodes.len();
-        self.tree
-            .nodes
-            .push(TreeNode::with_capacity(label, edge_hint));
+        self.tree.nodes.push(TreeNode::with_capacity(label, edge_hint));
         if edge_hint == 1 {
             self.tree.nodes[node_id].tip_index = Some(self.tree.tip_count);
             self.tree.tip_count += 1;
@@ -361,12 +349,7 @@ impl TreeBuilder for SimpleTreeBuilder {
             .push(DirectedEdge::new(parent, support, branch_length));
     }
 
-    fn set_virtual_root(
-        &mut self,
-        node: Self::NodeId,
-        support: Option<f64>,
-        branch_length: Option<f64>,
-    ) {
+    fn set_virtual_root(&mut self, node: Self::NodeId, support: Option<f64>, branch_length: Option<f64>) {
         self.tree.virtual_root = Some(DirectedEdge::new(node, support, branch_length));
     }
 }
@@ -497,50 +480,20 @@ mod tests {
 
         let postorder_edges: Vec<_> = tree.edge_postorder(4).collect();
         assert_eq!(postorder_edges.len(), 5);
-        assert_eq!(
-            tree.node(postorder_edges[0].0).label,
-            Some(String::from("R"))
-        );
-        assert_eq!(
-            tree.node(postorder_edges[0].1.target).label,
-            Some(String::from("A"))
-        );
+        assert_eq!(tree.node(postorder_edges[0].0).label, Some(String::from("R")));
+        assert_eq!(tree.node(postorder_edges[0].1.target).label, Some(String::from("A")));
         assert_eq!(postorder_edges[0].1.branch_length, Some(0.5));
-        assert_eq!(
-            tree.node(postorder_edges[1].0).label,
-            Some(String::from("D"))
-        );
-        assert_eq!(
-            tree.node(postorder_edges[1].1.target).label,
-            Some(String::from("B"))
-        );
+        assert_eq!(tree.node(postorder_edges[1].0).label, Some(String::from("D")));
+        assert_eq!(tree.node(postorder_edges[1].1.target).label, Some(String::from("B")));
         assert_eq!(postorder_edges[1].1.branch_length, Some(0.8));
-        assert_eq!(
-            tree.node(postorder_edges[2].0).label,
-            Some(String::from("D"))
-        );
-        assert_eq!(
-            tree.node(postorder_edges[2].1.target).label,
-            Some(String::from("C"))
-        );
+        assert_eq!(tree.node(postorder_edges[2].0).label, Some(String::from("D")));
+        assert_eq!(tree.node(postorder_edges[2].1.target).label, Some(String::from("C")));
         assert_eq!(postorder_edges[2].1.branch_length, Some(0.2));
-        assert_eq!(
-            tree.node(postorder_edges[3].0).label,
-            Some(String::from("R"))
-        );
-        assert_eq!(
-            tree.node(postorder_edges[3].1.target).label,
-            Some(String::from("D"))
-        );
+        assert_eq!(tree.node(postorder_edges[3].0).label, Some(String::from("R")));
+        assert_eq!(tree.node(postorder_edges[3].1.target).label, Some(String::from("D")));
         assert_eq!(postorder_edges[3].1.branch_length, Some(0.1));
-        assert_eq!(
-            tree.node(postorder_edges[4].0).label,
-            Some(String::from("R"))
-        );
-        assert_eq!(
-            tree.node(postorder_edges[4].1.target).label,
-            Some(String::from("R"))
-        );
+        assert_eq!(tree.node(postorder_edges[4].0).label, Some(String::from("R")));
+        assert_eq!(tree.node(postorder_edges[4].1.target).label, Some(String::from("R")));
         assert_eq!(postorder_edges[4].1.branch_length, None);
     }
 
@@ -589,9 +542,6 @@ mod tests {
         let tree = result.expect("Parser returned no tree.");
 
         assert_eq!(tree.node_count(), 5);
-        assert_eq!(
-            tree.preorder(tree.virtual_root().unwrap()),
-            vec![4, 0, 3, 1, 2]
-        );
+        assert_eq!(tree.preorder(tree.virtual_root().unwrap()), vec![4, 0, 3, 1, 2]);
     }
 }
