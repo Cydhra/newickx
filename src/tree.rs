@@ -29,7 +29,6 @@ pub type TraversalOrder = [NodeId];
 pub struct NTree {
     nodes: Vec<TreeNode>,
     virtual_root: Option<DirectedEdge>,
-    tip_count: usize,
 }
 
 impl NTree {
@@ -38,7 +37,6 @@ impl NTree {
         NTree {
             nodes: Vec::new(),
             virtual_root: None,
-            tip_count: 0,
         }
     }
 
@@ -48,7 +46,6 @@ impl NTree {
         NTree {
             nodes: Vec::with_capacity(capacity),
             virtual_root: None,
-            tip_count: 0,
         }
     }
 
@@ -194,11 +191,6 @@ impl NTree {
         (0..self.node_count()).collect()
     }
 
-    /// The number of tips (usually taxa) in the tree
-    pub fn tip_count(&self) -> usize {
-        self.tip_count
-    }
-
     /// Returns the length of the tree, which is the number of nodes in the tree.
     /// This is equivalent to the `node_count()` method.
     pub fn len(&self) -> usize {
@@ -215,7 +207,6 @@ impl NTree {
 #[derive(Clone, Debug)]
 pub struct TreeNode {
     pub label: Option<String>,
-    tip_index: Option<usize>,
     #[cfg(feature = "smallvec")]
     edges: smallvec::SmallVec<[DirectedEdge; 3]>,
     #[cfg(not(feature = "smallvec"))]
@@ -227,7 +218,6 @@ impl TreeNode {
     pub fn new(label: Option<String>) -> Self {
         TreeNode {
             label,
-            tip_index: None,
             #[cfg(feature = "smallvec")]
             edges: smallvec::SmallVec::new(),
             #[cfg(not(feature = "smallvec"))]
@@ -239,7 +229,6 @@ impl TreeNode {
     pub fn with_capacity(label: Option<String>, capacity: usize) -> Self {
         TreeNode {
             label,
-            tip_index: None,
             #[cfg(feature = "smallvec")]
             edges: smallvec::SmallVec::with_capacity(capacity),
             #[cfg(not(feature = "smallvec"))]
@@ -254,12 +243,7 @@ impl TreeNode {
 
     /// Returns true, if the node is a tip (leaf) node.
     pub fn is_tip(&self) -> bool {
-        self.tip_index.is_some()
-    }
-
-    /// Returns the index in a contiguous numbering of tips, if the node is a tip.
-    pub fn tip_index(&self) -> Option<usize> {
-        self.tip_index
+        self.edges.len() == 1
     }
 }
 
@@ -327,10 +311,6 @@ impl TreeBuilder for SimpleTreeBuilder {
     fn add_node(&mut self, label: Option<String>, edge_hint: usize) -> Self::NodeId {
         let node_id = self.tree.nodes.len();
         self.tree.nodes.push(TreeNode::with_capacity(label, edge_hint));
-        if edge_hint == 1 {
-            self.tree.nodes[node_id].tip_index = Some(self.tree.tip_count);
-            self.tree.tip_count += 1;
-        }
         node_id
     }
 
@@ -495,42 +475,6 @@ mod tests {
         assert_eq!(tree.node(postorder_edges[4].0).label, Some(String::from("R")));
         assert_eq!(tree.node(postorder_edges[4].1.target).label, Some(String::from("R")));
         assert_eq!(postorder_edges[4].1.branch_length, None);
-    }
-
-    #[test]
-    fn test_tip_index() {
-        let newick = "(A,(B,C)D)R;";
-        let builder = SimpleTreeBuilder::new();
-        let mut parser = Parser::new(newick.as_bytes(), builder);
-        let result = parser.parse().expect("Parsing failed.");
-        let tree = result.expect("Parser returned no tree.");
-
-        assert_eq!(tree.node_count(), 5);
-        assert_eq!(tree.tip_count(), 3);
-
-        // test the tip indices are non-repeating
-        assert_ne!(tree.node(0).tip_index, tree.node(1).tip_index);
-        assert_ne!(tree.node(0).tip_index, tree.node(2).tip_index);
-        assert_ne!(tree.node(1).tip_index, tree.node(2).tip_index);
-
-        // test the tip index is contiguous
-        assert!(tree.node(0).tip_index.unwrap() < 3);
-        assert!(tree.node(1).tip_index.unwrap() < 3);
-        assert!(tree.node(2).tip_index.unwrap() < 3);
-    }
-
-    #[test]
-    fn test_root_tip() {
-        let newick = "((A,(B,C)D))R;";
-        let builder = SimpleTreeBuilder::new();
-        let mut parser = Parser::new(newick.as_bytes(), builder);
-        let result = parser.parse().expect("Parsing failed.");
-        let tree = result.expect("Parser returned no tree.");
-
-        assert_eq!(tree.node_count(), 6);
-
-        // test the root is now an additional tip
-        assert_eq!(tree.tip_count(), 4);
     }
 
     #[test]
