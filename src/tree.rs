@@ -76,6 +76,34 @@ impl NTree {
         self.nodes.iter_mut()
     }
 
+    /// Add a node to the tree. It will not be connected to the tree yet.
+    /// The node ID is returned, which can be used to uniquely identify the node in the tree.
+    ///
+    /// The `edge_hint` parameter is used to provide a hint for the number of edges
+    /// that will be added to the node later.
+    pub fn add_node(&mut self, label: Option<String>, edge_hint: usize) -> NodeId {
+        let node_id = self.nodes.len();
+        self.nodes.push(TreeNode::with_capacity(label, edge_hint));
+        node_id
+    }
+
+    /// Add an edge between two existing nodes in the tree.
+    /// The assignment of parent and child is arbitrary if the tree is unrooted.
+    /// If the tree is rooted, the parent must be closer to the root than the child.
+    /// In any case, the edge will be added to both the parent and child, so two-way traversal
+    /// is always possible.
+    /// An edge can only be added between two nodes that are already part of the tree.
+    /// There is no check to prevent adding the same edge multiple times, which will result in logical
+    /// errors on traversal and serialization.
+    pub fn add_edge(&mut self, parent: NodeId, child: NodeId, support: Option<f64>, branch_length: Option<f64>) {
+        self.nodes[parent]
+            .edges
+            .push(DirectedEdge::new(child, support, branch_length));
+        self.nodes[child]
+            .edges
+            .push(DirectedEdge::new(parent, support, branch_length));
+    }
+
     /// Returns an iterator over the nodes in the tree in the specified traversal order.
     /// The order is a list of node IDs in the order they are to be traversed.
     /// The order is not guaranteed to visit each node, or to visit a node just once.
@@ -309,9 +337,7 @@ impl TreeBuilder for SimpleTreeBuilder {
     }
 
     fn add_node(&mut self, label: Option<String>, edge_hint: usize) -> Self::NodeId {
-        let node_id = self.tree.nodes.len();
-        self.tree.nodes.push(TreeNode::with_capacity(label, edge_hint));
-        node_id
+        self.tree.add_node(label, edge_hint)
     }
 
     fn add_edge(
@@ -321,12 +347,7 @@ impl TreeBuilder for SimpleTreeBuilder {
         support: Option<f64>,
         branch_length: Option<f64>,
     ) {
-        self.tree.nodes[parent]
-            .edges
-            .push(DirectedEdge::new(child, support, branch_length));
-        self.tree.nodes[child]
-            .edges
-            .push(DirectedEdge::new(parent, support, branch_length));
+        self.tree.add_edge(parent, child, support, branch_length)
     }
 
     fn set_virtual_root(&mut self, node: Self::NodeId, support: Option<f64>, branch_length: Option<f64>) {
