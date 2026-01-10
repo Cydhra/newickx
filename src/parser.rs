@@ -1,6 +1,6 @@
+use crate::TreeBuilder;
 use crate::tokenizer::Token::*;
 use crate::tokenizer::{Token, Tokenizer, TokenizerError};
-use crate::TreeBuilder;
 use snafu::prelude::*;
 use std::io::Read;
 
@@ -82,17 +82,11 @@ impl<R: Read, B: TreeBuilder> Parser<R, B> {
                     // support value, but a prior comma has already been consumed
                     if self.expect_sibling {
                         let anonymous_child = self.builder.add_node(None, 1);
-                        stack
-                            .last_mut()
-                            .unwrap()
-                            .push((anonymous_child, None, None));
+                        stack.last_mut().unwrap().push((anonymous_child, None, None));
                         self.expect_sibling = false;
                     }
 
-                    let has_info = matches!(
-                        self.tokenizer.peek(),
-                        Ok(Colon) | Ok(Name(_)) | Ok(Float(_))
-                    );
+                    let has_info = matches!(self.tokenizer.peek(), Ok(Colon) | Ok(Name(_)) | Ok(Float(_)));
                     let mut node_label = None;
                     let mut node_support = None;
                     let mut node_branch_length = None;
@@ -113,12 +107,8 @@ impl<R: Read, B: TreeBuilder> Parser<R, B> {
                     let children = stack.pop().unwrap();
                     let node_id = self.builder.add_node(node_label, children.len() + 1);
                     for (child, branch_support, branch_length) in children {
-                        self.builder.add_edge(
-                            node_id.clone(),
-                            child,
-                            branch_support,
-                            branch_length,
-                        );
+                        self.builder
+                            .add_edge(node_id.clone(), child, branch_support, branch_length);
                     }
 
                     // push current edge to the parent children
@@ -140,11 +130,9 @@ impl<R: Read, B: TreeBuilder> Parser<R, B> {
                         let node_id = self.builder.add_node(Some(name), 1);
                         children.push((node_id, None, branch_length));
                     } else {
-                        return Err(ParseError::UnexpectedToken {
-                            expected: vec![OpenParen, Semicolon],
-                            found: Name(name),
-                            reason: "No opening parenthesis found prior".to_string(),
-                        });
+                        // if there are no children, we are at the root node
+                        let node_id = self.builder.add_node(Some(name), 0);
+                        self.builder.set_virtual_root(node_id, None, branch_length);
                     }
                 }
                 Float(support) => {
@@ -253,19 +241,21 @@ impl<R: Read, B: TreeBuilder> Parser<R, B> {
     /// If a comma is consumed, the parser expects a sibling node next, ensuring that a following
     /// closing parenthesis implicitly adds an anonymous node.
     #[inline]
-    fn consume_named_node_info(
-        &mut self,
-    ) -> Result<(Option<String>, Option<f64>, Option<f64>), ParseError> {
+    fn consume_named_node_info(&mut self) -> Result<(Option<String>, Option<f64>, Option<f64>), ParseError> {
         let mut node_label = None;
         let mut node_support = None;
 
         // parse node label or support
         let token = self.tokenizer.peek().context(InputSnafu {})?;
         if let Name(_) = token {
-            let Name(label) = self.tokenizer.next_token().context(InputSnafu {})? else { unreachable!() };
+            let Name(label) = self.tokenizer.next_token().context(InputSnafu {})? else {
+                unreachable!()
+            };
             node_label = Some(label);
         } else if let Float(_) = token {
-            let Float(support) = self.tokenizer.next_token().context(InputSnafu {})? else { unreachable!() };
+            let Float(support) = self.tokenizer.next_token().context(InputSnafu {})? else {
+                unreachable!()
+            };
             node_support = Some(support);
         }
 
@@ -320,9 +310,7 @@ impl<R: Read, B: TreeBuilder> Parser<R, B> {
             Err(ParseError::UnexpectedToken {
                 expected: vec![Comma, CloseParen, Semicolon],
                 found: token.clone(),
-                reason:
-                    "Expected a comma, closing parenthesis, or semicolon after a node definition"
-                        .to_string(),
+                reason: "Expected a comma, closing parenthesis, or semicolon after a node definition".to_string(),
             })
         }
     }
@@ -354,13 +342,7 @@ mod tests {
         ) {
         }
 
-        fn set_virtual_root(
-            &mut self,
-            _node: Self::NodeId,
-            _support: Option<f64>,
-            _branch_length: Option<f64>,
-        ) {
-        }
+        fn set_virtual_root(&mut self, _node: Self::NodeId, _support: Option<f64>, _branch_length: Option<f64>) {}
     }
 
     struct OutputTreeBuilder {
@@ -391,13 +373,7 @@ mod tests {
         ) {
         }
 
-        fn set_virtual_root(
-            &mut self,
-            _node: Self::NodeId,
-            _support: Option<f64>,
-            _branch_length: Option<f64>,
-        ) {
-        }
+        fn set_virtual_root(&mut self, _node: Self::NodeId, _support: Option<f64>, _branch_length: Option<f64>) {}
     }
 
     #[rstest]
@@ -427,11 +403,7 @@ mod tests {
         let builder = MockTreeBuilder {};
         let mut parser = Parser::new(stream, builder);
 
-        assert!(
-            parser.parse().is_err(),
-            "Expected parse to fail for file: {:?}",
-            path
-        );
+        assert!(parser.parse().is_err(), "Expected parse to fail for file: {:?}", path);
     }
 
     #[rstest]
@@ -443,21 +415,15 @@ mod tests {
         expected_output.set_extension("out");
 
         let stream = File::open(&path).expect("Could not open file");
-        let builder = OutputTreeBuilder {
-            tree: String::new(),
-        };
+        let builder = OutputTreeBuilder { tree: String::new() };
         let mut parser = Parser::new(stream, builder);
 
-        let mut expected_stream =
-            File::open(expected_output).expect("Could not open expected output file");
+        let mut expected_stream = File::open(expected_output).expect("Could not open expected output file");
         let mut expected = String::new();
         expected_stream
             .read_to_string(&mut expected)
             .expect("Could not read expected output file");
 
-        assert_eq!(
-            parser.parse().expect("Failed to parse file"),
-            Some(expected)
-        );
+        assert_eq!(parser.parse().expect("Failed to parse file"), Some(expected));
     }
 }
