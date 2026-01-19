@@ -1,5 +1,6 @@
 use crate::tree::TreeError::{ChildNoParent, DiscordantEdgeData, ParentNoChild};
 use crate::{TreeBuilder, TreeSerialize};
+use std::fmt::{Display, Formatter};
 use std::{iter, mem};
 
 pub type NodeId = usize;
@@ -41,7 +42,18 @@ pub enum TreeError {
     ChildNoParent,
 
     /// Edge data of the parent edge and the corresponding child edge are not equal.
-    DiscordantEdgeData,
+    DiscordantEdgeData {
+        branch_len_down: Option<f64>,
+        branch_len_up: Option<f64>,
+        branch_support_down: Option<f64>,
+        branch_support_up: Option<f64>,
+    },
+}
+
+impl Display for TreeError {
+    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+        write!(f, "{self:?}")
+    }
 }
 
 impl NTree {
@@ -137,11 +149,21 @@ impl NTree {
 
             if let Some(parent_edge) = self.nodes[child].edges.iter().position(|e| e.target == parent) {
                 if branch_len != self.nodes[child].edges[parent_edge].branch_length {
-                    return Err(DiscordantEdgeData);
+                    return Err(DiscordantEdgeData {
+                        branch_len_down: branch_len,
+                        branch_len_up: self.nodes[child].edges[parent_edge].branch_length,
+                        branch_support_down: branch_support,
+                        branch_support_up: self.nodes[child].edges[parent_edge].support,
+                    });
                 }
 
                 if branch_support != self.nodes[child].edges[parent_edge].branch_length {
-                    return Err(DiscordantEdgeData);
+                    return Err(DiscordantEdgeData {
+                        branch_len_down: branch_len,
+                        branch_len_up: self.nodes[child].edges[parent_edge].branch_length,
+                        branch_support_down: branch_support,
+                        branch_support_up: self.nodes[child].edges[parent_edge].support,
+                    });
                 }
 
                 self.nodes[child].edges.swap_remove(parent_edge);
