@@ -157,7 +157,7 @@ impl NTree {
                     });
                 }
 
-                if branch_support != self.nodes[child].edges[parent_edge].branch_length {
+                if branch_support != self.nodes[child].edges[parent_edge].support {
                     return Err(DiscordantEdgeData {
                         branch_len_down: branch_len,
                         branch_len_up: self.nodes[child].edges[parent_edge].branch_length,
