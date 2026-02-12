@@ -48,6 +48,9 @@ pub enum TreeError {
         branch_support_down: Option<f64>,
         branch_support_up: Option<f64>,
     },
+
+    /// Error when referencing a node that is not in the tree.
+    InvalidNode { node_id: NodeId },
 }
 
 impl Display for TreeError {
@@ -208,6 +211,25 @@ impl NTree {
         }
 
         Ok(())
+    }
+
+    pub fn reroot(&mut self, node_id: NodeId) -> Result<(), TreeError> {
+        if self.is_empty() {
+            Err(TreeError::InvalidNode { node_id })
+        } else if let Some(DirectedEdge {
+            support, branch_length, ..
+        }) = self.virtual_root
+        {
+            self.virtual_root = Some(DirectedEdge {
+                target: node_id,
+                support,
+                branch_length,
+            });
+
+            Ok(())
+        } else {
+            unreachable!("The tree cannot have nodes but no virtual root.")
+        }
     }
 
     /// Returns an iterator over the nodes in the tree in the specified traversal order.
