@@ -276,8 +276,11 @@ impl<R: Read> Tokenizer<R> {
 
     /// Reads a numeric-leading literal from the input stream, starting at the current position.
     /// Returns a `Token::Float` for pure numeric literals and `Token::Name` otherwise.
+    /// Reads a numeric-leading literal from the input stream, starting at the current position.
+    /// Returns a `Token::Float` for pure numeric literals and `Token::Name` otherwise.
     ///
     /// If the buffer is exhausted while reading, it will attempt to fill the buffer
+    /// and continue reading. If the end of the stream is reached, it will return a literal containing
     /// and continue reading. If the end of the stream is reached, it will return a literal containing
     /// the data read so far.
     ///
