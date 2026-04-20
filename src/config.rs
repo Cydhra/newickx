@@ -34,14 +34,16 @@ impl Settings {
     /// Note that the serialization behavior is unaffected by this setting, since spaces are illegal
     /// in unquoted strings and have to be replaced with underscores.
     /// See [use_quoted_strings] for controlling serialization behavior.
-    pub fn translate_underscores(&mut self, translate_underscores: bool) -> &mut Self {
+    #[inline]
+    pub fn translate_underscores(mut self, translate_underscores: bool) -> Self {
         self.translate_underscores = translate_underscores;
         self
     }
 
     /// Controls which type of Newick string is used during serialization.
     /// See [QuotationMode].
-    pub fn use_quoted_strings(&mut self, use_quoted_strings: QuotationMode) -> &mut Self {
+    #[inline]
+    pub fn use_quoted_strings(mut self, use_quoted_strings: QuotationMode) -> Self {
         self.use_quoted_strings = use_quoted_strings;
         self
     }

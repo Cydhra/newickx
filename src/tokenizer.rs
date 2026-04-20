@@ -341,4 +341,24 @@ mod tests {
         };
         assert_eq!(semicolon, Token::Semicolon);
     }
+
+    #[test]
+    fn test_no_replacement() {
+        // test whether not replacing underscores in strings works
+        let input = String::from("AB_C,'XY_Z'");
+        let mut tokenizer =
+            Tokenizer::with_settings(input.as_bytes(), Settings::default().translate_underscores(false));
+
+        if let Ok(Token::Name(name)) = tokenizer.next_token() {
+            assert_eq!("AB_C", name, "incorrectly parsed unquoted string");
+        };
+
+        let Ok(Token::Comma) = tokenizer.next_token() else {
+            panic!("missing comma");
+        };
+
+        if let Ok(Token::Name(name)) = tokenizer.next_token() {
+            assert_eq!("XY_Z", name, "incorrectly parsed quoted string");
+        };
+    }
 }
