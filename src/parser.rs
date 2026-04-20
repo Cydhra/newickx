@@ -3,7 +3,6 @@ use crate::config::Settings;
 use crate::tokenizer::Token::*;
 use crate::tokenizer::{Token, Tokenizer, TokenizerError};
 use snafu::prelude::*;
-use std::fs::read;
 use std::io::Read;
 
 /// Error type for the parser

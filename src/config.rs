@@ -1,6 +1,7 @@
 use crate::config::QuotationMode::*;
 
 /// Serializer behavior for Newick strings.
+#[derive(Debug, Copy, Clone)]
 pub enum QuotationMode {
     /// Always use quoted strings.
     Always,

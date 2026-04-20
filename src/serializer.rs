@@ -44,10 +44,10 @@ impl<T: TreeSerialize> Serializer<T> {
         if let Some(label) = label {
             // todo sanitize input (remove illegal new-lines, etc)
             match settings.use_quoted_strings {
-                QuotationMode::Always => result.push_str(&format!("'{}'", label)),
+                QuotationMode::Always => result.push_str(&format!("'{}'", label.replace('\'', "''"))),
                 QuotationMode::Dynamic => {
                     if label.contains(|b| b == ' ' || b == '_') {
-                        result.push_str(&format!("'{}'", label))
+                        result.push_str(&format!("'{}'", label.replace('\'', "''")))
                     } else {
                         result.push_str(&format!("{}", label.replace(' ', "_")))
                     }
@@ -149,6 +149,7 @@ impl<T: TreeSerialize> Serializer<T> {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::config::QuotationMode::{Always, Dynamic, Never};
     use crate::parser::Parser;
     use crate::tree::{NTree, SimpleTreeBuilder};
     use rstest::rstest;
@@ -190,5 +191,49 @@ mod tests {
         let serializer = Serializer::<NTree>::new();
         let serialized = serializer.serialize(&tree);
         assert_eq!(serialized, newick);
+    }
+
+    #[test]
+    fn test_use_quotes() {
+        for (setting, expected) in [(Always, "'A_B C'"), (Never, "A_B_C"), (Dynamic, "'A_B C'")] {
+            let settings = Settings::default().use_quoted_strings(setting);
+
+            let mut result = String::new();
+            Serializer::<NTree>::push_node_data(&settings, &mut result, Some(&"A_B C".to_string()), None, None);
+
+            assert_eq!(
+                expected, result,
+                "{setting:?} generates unexpected result \"{result}\" instead of \"{expected}\""
+            );
+        }
+    }
+
+    #[test]
+    fn test_double_quotes() {
+        // test whether escpaping works
+        let settings = Settings::default().use_quoted_strings(Always);
+
+        let mut result = String::new();
+        Serializer::<NTree>::push_node_data(&settings, &mut result, Some(&"A'B".to_string()), None, None);
+
+        assert_eq!("'A''B'", result);
+
+        let settings = Settings::default().use_quoted_strings(Dynamic);
+
+        let mut result = String::new();
+        Serializer::<NTree>::push_node_data(&settings, &mut result, Some(&"A'B_".to_string()), None, None);
+
+        assert_eq!("'A''B_'", result);
+    }
+
+    #[test]
+    fn test_dynamic_quotes() {
+        // test whether Dynamic mode doesnt use quotes if unnecessary
+        let settings = Settings::default().use_quoted_strings(Dynamic);
+
+        let mut result = String::new();
+        Serializer::<NTree>::push_node_data(&settings, &mut result, Some(&"AB".to_string()), None, None);
+
+        assert_eq!("AB", result);
     }
 }
