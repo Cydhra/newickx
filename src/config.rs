@@ -15,8 +15,8 @@ pub enum QuotationMode {
 /// Settings for serialization and deserialization. This mostly affects string (de-)serialization
 /// as it is defined ambiguously in the standard.
 pub struct Settings {
-    translate_underscores: bool,
-    use_quoted_strings: QuotationMode,
+    pub(crate) translate_underscores: bool,
+    pub(crate) use_quoted_strings: QuotationMode,
 }
 
 impl Default for Settings {
@@ -39,7 +39,7 @@ impl Settings {
         self
     }
 
-    /// Control which type of Newick string is used during serialization.
+    /// Controls which type of Newick string is used during serialization.
     /// See [QuotationMode].
     pub fn use_quoted_strings(&mut self, use_quoted_strings: QuotationMode) -> &mut Self {
         self.use_quoted_strings = use_quoted_strings;

@@ -1,3 +1,4 @@
+use crate::config::Settings;
 use snafu::{ResultExt, Snafu, ensure};
 use std::borrow::Cow;
 use std::fmt::Display;
@@ -40,6 +41,7 @@ impl Display for Token {
 }
 
 pub(super) struct Tokenizer<R: Read> {
+    settings: Settings,
     reader: R,
     buffer: Box<[u8; BUFFER_SIZE]>,
     position: usize,
@@ -49,8 +51,13 @@ pub(super) struct Tokenizer<R: Read> {
 
 impl<R: Read> Tokenizer<R> {
     pub(super) fn new(reader: R) -> Self {
+        Self::with_settings(reader, Settings::default())
+    }
+
+    pub(super) fn with_settings(reader: R, settings: Settings) -> Self {
         Tokenizer {
             reader,
+            settings,
             buffer: Box::new([0; BUFFER_SIZE]),
             position: 0,
             length: 0,
@@ -162,33 +169,34 @@ impl<R: Read> Tokenizer<R> {
     ///
     /// If the literal is larger than the buffer size, it will panic.
     fn read_numeral_or_string(&mut self) -> Result<Token, TokenizerError> {
+        let translate_underscores = self.settings.translate_underscores;
         let token = self.read_token(|&b| {
             b.is_ascii_whitespace() || b == b',' || b == b';' || b == b':' || b == b'(' || b == b')'
         })?;
 
-        if token
-            .iter()
-            .all(|b| b.is_ascii_digit() || *b == b'.' || *b == b'-')
-        {
+        if token.iter().all(|b| b.is_ascii_digit() || *b == b'.' || *b == b'-') {
             return Ok(Token::Float(
-                String::from_utf8_lossy(&token)
-                    .parse()
-                    .context(FloatSnafu {})?,
+                String::from_utf8_lossy(&token).parse().context(FloatSnafu {})?,
             ));
         }
 
-        Ok(Token::Name(
-            String::from_utf8_lossy(&token).replace('_', " "),
-        ))
+        Ok(Token::Name(if translate_underscores {
+            String::from_utf8_lossy(&token).replace('_', " ")
+        } else {
+            String::from_utf8_lossy(&token).to_string()
+        }))
     }
 
     fn read_string(&mut self) -> Result<Token, TokenizerError> {
+        let translate_underscores = self.settings.translate_underscores;
         let token = self.read_token(|&b| {
             b.is_ascii_whitespace() || b == b',' || b == b';' || b == b':' || b == b'(' || b == b')'
         })?;
-        Ok(Token::Name(
-            String::from_utf8_lossy(&token).replace('_', " "),
-        ))
+        Ok(Token::Name(if translate_underscores {
+            String::from_utf8_lossy(&token).replace('_', " ")
+        } else {
+            String::from_utf8_lossy(&token).to_string()
+        }))
     }
 
     fn read_quoted_string(&mut self) -> Result<Token, TokenizerError> {
@@ -247,8 +255,7 @@ mod tests {
         expected_output.set_extension("out");
 
         let stream = File::open(path).expect("Could not open file");
-        let expected_stream =
-            File::open(expected_output).expect("Could not open expected output file");
+        let expected_stream = File::open(expected_output).expect("Could not open expected output file");
 
         let mut tokenizer = Tokenizer::new(stream);
         let mut expected_reader = BufReader::new(expected_stream);
