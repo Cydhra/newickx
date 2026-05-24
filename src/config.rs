@@ -15,17 +15,17 @@ pub enum QuotationMode {
     /// Always use quoted strings.
     Always,
 
-    /// Use unquoted strings unless a [reserved character] (other than space) is present.
-    /// Spaces are replaced with underscores.
-    ///
-    /// [reserved character]: crate::serializer::NEWICK_RESERVED_CHARACTERS_NO_SPACE
-    PreferUnquoted,
-
     /// Use unquoted strings unless the string contains a space, or another [reserved character].
     /// Since labels containing spaces are quoted, spaces are not replaced by underscores.
     ///
     /// [reserved character]: crate::serializer::NEWICK_RESERVED_CHARACTERS
     Dynamic,
+
+    /// Use unquoted strings unless a [reserved character] (other than space) is present.
+    /// Spaces are replaced with underscores.
+    ///
+    /// [reserved character]: crate::serializer::NEWICK_RESERVED_CHARACTERS_NO_SPACE
+    PreferUnquoted,
 
     /// Never use quoted strings, replace all [reserved characters] with underscores.
     /// This does not adhere to the Newick standard and will irrecoverably change labels that contain [reserved characters] other than space.
