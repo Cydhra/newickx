@@ -713,4 +713,36 @@ mod tests {
             Some(0.1)
         )
     }
+
+    #[test]
+    fn test_reroot() {
+        // test whether rerooting changes the DFS expectedly
+        let mut builder = SimpleTreeBuilder::new();
+        let node_a = builder.add_node(Some("A".into()), 1);
+        let node_b = builder.add_node(Some("B".into()), 1);
+
+        let node_c = builder.add_node(Some("C".into()), 1);
+        let node_d = builder.add_node(Some("D".into()), 1);
+
+        let node_i1 = builder.add_node(None, 3);
+        let node_i2 = builder.add_node(None, 3);
+
+        builder.add_edge(node_i1, node_a, None, None);
+        builder.add_edge(node_i1, node_b, None, None);
+        builder.add_edge(node_i2, node_c, None, None);
+        builder.add_edge(node_i2, node_d, None, None);
+
+        builder.add_edge(node_i1, node_i2, None, None);
+        builder.set_virtual_root(node_i1, None, None);
+
+        let mut tree = builder.build();
+        tree.reroot(node_a).expect("Rerooting failed");
+
+        assert_eq!(tree.get_tree_support(), Some(100.0));
+        // technically the sibling order can change, just the subtrees need correct order
+        assert_eq!(
+            tree.postorder(tree.virtual_root().unwrap()),
+            vec![node_b, node_c, node_d, node_i2, node_i1, node_a]
+        );
+    }
 }
