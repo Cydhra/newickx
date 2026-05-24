@@ -10,7 +10,7 @@ use crate::config::QuotationMode::*;
 /// Single quotes in the string are escaped by doubling them (`''`).
 ///
 /// [reserved characters]: crate::serializer::NEWICK_RESERVED_CHARACTERS
-#[derive(Debug, Copy, Clone)]
+#[derive(Debug, Copy, Clone, PartialEq)]
 pub enum QuotationMode {
     /// Always use quoted strings.
     Always,
@@ -36,7 +36,7 @@ pub enum QuotationMode {
 
 /// Settings for serialization and deserialization. This mostly affects string (de-)serialization
 /// as it is defined ambiguously in the standard.
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq)]
 pub struct Settings {
     pub(crate) translate_underscores: bool,
     pub(crate) use_quoted_strings: QuotationMode,
