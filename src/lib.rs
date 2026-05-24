@@ -1,3 +1,45 @@
+#![warn(rustdoc::broken_intra_doc_links)]
+#![warn(missing_docs)]
+
+//! A minimal newick parser that constructs a simple adjacency-list-based [tree] structure.
+//! It can construct arbitrary tree types by implementing a [builder trait] and handing it to
+//! the [parser].
+//!
+//! # Minimal Tree
+//! The provided tree data structure is minimal: It stores only information required for Newick,
+//! and provides full support for tree modification.
+//! No further data is stored keeping the tree as flexible as possible for downstream usage.
+//! It connects edges with double edges to allow full traversal from any root, and simplify rerooting.
+//!
+//! If you expect your tree to be strictly bifurcating, you can enable the `smallvec` crate feature
+//! to enable a [Small Vector Optimization](https://docs.rs/smallvec/latest/smallvec/).
+//! This optimization does not break if the tree is not strictly bifurcating but no longer provides
+//! a benefit on non-bifurcating nodes.
+//!
+//! # Branch Support
+//! The parser automatically parses numerical node labels as branch support.
+//! They are treated differently both in the builder trait and the [tree] data structure,
+//! to facilitate mapping the support to edges.
+//! This mitigates a common issue of Newick-based software, where rerooting or manipulating trees
+//! with branch support values incorrectly assigns support values after the traversal order changes.
+//!
+//! # String Label Handling
+//! Newick supports two methods of encoding string node labels.
+//! If nothing in the label needs to be escaped, the label can be written to the Newick string as is.
+//! If the label contains spaces, the label either needs to be surrounded by single-quotes,
+//! or the spaces need to be replaced with underscores.
+//! If the label contains Newick characters, it must be surrounded by single-quotes.
+//! The library supports both modes, and an Option to enforce either mode.
+//! In case of Newick characters in the label when the underscore mode is enforced, the serializer
+//! will eagerly replace characters with underscores even if they aren't whitespace.
+//!
+//! The parser translates underscores of unquoted strings into whitespace to revert the encoding.
+//! This can be disabled to handle incorrectly encoded files.
+//!
+//! [builder trait]: TreeBuilder
+//! [parser]: parser::Parser
+//! [tree]: tree::NTree
+
 pub mod tokenizer;
 
 pub mod tree;
