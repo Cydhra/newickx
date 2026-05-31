@@ -1,12 +1,20 @@
+//! Configuration for the [`Parser`] and the [`Serializer`].
+//! The [`Settings`] struct can be configured with a builder pattern and given to
+//! parser and serializer.
+//!
+//! [`Parser`]: crate::parser::Parser
+//! [`Serializer`]: crate::serializer::Serializer
+//! [`Settings`]: Settings
+
 use crate::config::QuotationMode::*;
 
 /// Serializer behavior for Newick strings.
 /// Since there is ambiguity on how to encode strings, the behavior can be changed.
 /// Note that some behaviors violate the Newick standard.
 ///
-/// Strings are written verbatim into the Newick representation, unless the string contains a space, or any character reserved by the Newick standard.
-/// Spaces can be replaced with underscores, unless other [reserved characters] or underscores are present.
-/// If reserved characters are present, a string must be enclosed in single quotes.
+/// Strings are written verbatim into the Newick representation, unless the string contains a space, or any character
+/// reserved by the Newick standard. Spaces can be replaced with underscores, unless other [reserved characters] or
+/// underscores are present. If reserved characters are present, a string must be enclosed in single quotes.
 /// Single quotes in the string are escaped by doubling them (`''`).
 ///
 /// [reserved characters]: crate::serializer::NEWICK_RESERVED_CHARACTERS
@@ -28,7 +36,8 @@ pub enum QuotationMode {
     PreferUnquoted,
 
     /// Never use quoted strings, replace all [reserved characters] with underscores.
-    /// This does not adhere to the Newick standard and will irrecoverably change labels that contain [reserved characters] other than space.
+    /// This does not adhere to the Newick standard and will irrecoverably change labels that contain [reserved
+    /// characters] other than space.
     ///
     /// [reserved characters]: crate::serializer::NEWICK_RESERVED_CHARACTERS
     Never,

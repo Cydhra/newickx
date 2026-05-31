@@ -40,13 +40,11 @@
 //! [parser]: parser::Parser
 //! [tree]: tree::NTree
 
-pub mod tokenizer;
-
-pub mod tree;
-
 pub mod config;
 pub mod parser;
 pub mod serializer;
+pub mod tokenizer;
+pub mod tree;
 
 /// A trait for building tree structures.
 /// The trait is used by the [`Parser`] to create trees from newick data.
