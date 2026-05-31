@@ -1,3 +1,11 @@
+//! A simple tree data structure and the accompanying implementations of [`TreeBuilder`] and
+//! [`TreeSerialize`].
+//! This tree structure contains all information parsed from the Newick file, without additional
+//! structure or baggage.
+//! It is intended to be a simplistic way of interacting with Newick.
+//! If downstream crates want to parse Newick into their own data structure, they should ignore
+//! this module and instead implement [`TreeBuilder`] and [`TreeSerialize`].
+
 use crate::tree::TreeError::{ChildNoParent, DiscordantEdgeData, ParentNoChild};
 use crate::{TreeBuilder, TreeSerialize};
 use std::fmt::{Display, Formatter};
@@ -19,7 +27,8 @@ pub type TraversalOrder = [NodeId];
 /// Consequently, modifications to the tree topology require finding and modifying both edges.
 ///
 /// The tree can be unrooted, in which case a virtual root is used, which points to one of the tree's nodes.
-/// Rerooting the tree changes the traversal direction of some edges which is trivial thanks to the doubly-connected nodes.
+/// Rerooting the tree changes the traversal direction of some edges which is trivial thanks to the doubly-connected
+/// nodes.
 ///
 /// The tree does not contain any additional information that cannot be stored in the newick format.
 /// Consequently, the structure is both `Send` and `Sync`, and parsing from and serializing to newick
@@ -31,7 +40,8 @@ pub struct NTree {
 }
 
 /// Various types of errors which may come up during tree operations.
-/// A well-formed tree can only throw errors if the query is malformed (e.g., connecting an edge with a node that does not exist).
+/// A well-formed tree can only throw errors if the query is malformed (e.g., connecting an edge with a node that does
+/// not exist).
 #[derive(Debug, Clone)]
 pub enum TreeError {
     /// Error when removing an edge: Parent has no edge to the specified child.
@@ -231,10 +241,9 @@ impl NTree {
     /// This does not change the tree topology, it solely moves the virtual root to a different node.
     ///
     /// # Parameters
-    /// - `node_id` id of the new root node.
-    ///   The new virtual root will keep the support and branch length values associated with the virtual root before.
-    ///   If the tree is unconnected,
-    ///   this will move the support value and branch length to the connected component of the new root.
+    /// - `node_id` id of the new root node. The new virtual root will keep the support and branch length values
+    ///   associated with the virtual root before. If the tree is unconnected, this will move the support value and
+    ///   branch length to the connected component of the new root.
     ///
     /// # Edge Cases
     /// If the node that is chosen as the virtual root has a label,
