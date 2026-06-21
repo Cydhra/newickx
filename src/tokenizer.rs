@@ -181,7 +181,7 @@ impl<R: Read> Tokenizer<R> {
     /// assert_eq!(*tokenizer.peek().unwrap(), Token::Name("A B C".to_owned()));
     /// ```
     pub fn peek(&mut self) -> Result<&Token, TokenizerError> {
-        if !(self.lookahead.is_some()) {
+        if self.lookahead.is_none() {
             let token = self.next_token()?;
             self.lookahead = Some(token);
         }
