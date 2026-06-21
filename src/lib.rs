@@ -1,5 +1,6 @@
 #![warn(rustdoc::broken_intra_doc_links)]
 #![warn(missing_docs)]
+#![cfg_attr(docsrs, feature(doc_cfg))]
 
 //! A minimal newick parser that constructs a simple adjacency-list-based [tree] structure.
 //! It can construct arbitrary tree types by implementing a [builder trait] and handing it to
