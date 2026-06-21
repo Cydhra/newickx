@@ -121,22 +121,22 @@ impl<T: TreeSerialize> Serializer<T> {
     /// assert_eq!(converted, "(('A A'));");
     /// ```
     pub fn serialize(&self, tree: &T) -> String {
-        let root = tree.get_virtual_root();
+        let root = tree.virtual_root();
         if root.is_none() {
             return String::from(';');
         }
 
         let mut result = String::new();
         let mut stack = Vec::new();
-        let mut children = tree.get_children(root.unwrap(), root.unwrap()).peekable();
+        let mut children = tree.children(root.unwrap(), root.unwrap()).peekable();
 
         if children.peek().is_none() {
             Self::push_node_data(
                 &self.settings,
                 &mut result,
-                tree.get_label(root.as_ref().unwrap()),
-                tree.get_tree_support(),
-                tree.get_tree_branch_length(),
+                tree.label(root.as_ref().unwrap()),
+                tree.tree_support(),
+                tree.tree_branch_length(),
             );
             result.push(';');
             return result;
@@ -144,9 +144,9 @@ impl<T: TreeSerialize> Serializer<T> {
             result.push('(');
             stack.push(Node {
                 id: root.as_ref().unwrap(),
-                label: tree.get_label(root.as_ref().unwrap()),
-                support: tree.get_tree_support(),
-                branch_length: tree.get_tree_branch_length(),
+                label: tree.label(root.as_ref().unwrap()),
+                support: tree.tree_support(),
+                branch_length: tree.tree_branch_length(),
                 children,
             });
         }
@@ -154,12 +154,12 @@ impl<T: TreeSerialize> Serializer<T> {
         loop {
             let node = stack.last_mut().unwrap();
             if let Some((child_id, support, branch_length)) = node.children.next() {
-                let mut children = tree.get_children(*node.id, *child_id).peekable();
+                let mut children = tree.children(*node.id, *child_id).peekable();
                 if children.peek().is_some() {
                     result.push('(');
                     stack.push(Node {
                         id: child_id,
-                        label: tree.get_label(child_id),
+                        label: tree.label(child_id),
                         support,
                         branch_length,
                         children,
@@ -171,7 +171,7 @@ impl<T: TreeSerialize> Serializer<T> {
                     Self::push_node_data(
                         &self.settings,
                         &mut result,
-                        tree.get_label(child_id),
+                        tree.label(child_id),
                         support,
                         branch_length,
                     );

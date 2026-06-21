@@ -329,8 +329,8 @@ impl NTree {
     pub fn edge_postorder(&self, root: NodeId) -> impl Iterator<Item = (NodeId, DirectedEdge)> {
         let mut stack = Vec::with_capacity(self.node_count() << 1);
         stack.push((
-            (root, root, self.get_tree_support(), self.get_tree_branch_length()),
-            self.get_children(root, root),
+            (root, root, self.tree_support(), self.tree_branch_length()),
+            self.children(root, root),
         ));
         iter::from_fn(move || {
             loop {
@@ -339,7 +339,7 @@ impl NTree {
                         stack.push(((parent_id, node_id, support, branch_length), children));
                         stack.push((
                             (node_id, *child_id, child_support.clone(), child_branch_length.clone()),
-                            self.get_children(node_id, *child_id),
+                            self.children(node_id, *child_id),
                         ));
                     } else {
                         return Some((parent_id, DirectedEdge::new(node_id, support, branch_length)));
@@ -546,19 +546,19 @@ impl TreeBuilder for SimpleTreeBuilder {
 impl TreeSerialize for NTree {
     type NodeId = NodeId;
 
-    fn get_virtual_root(&self) -> Option<Self::NodeId> {
+    fn virtual_root(&self) -> Option<Self::NodeId> {
         self.virtual_root()
     }
 
-    fn get_tree_support(&self) -> Option<f64> {
+    fn tree_support(&self) -> Option<f64> {
         self.virtual_root.as_ref().and_then(|e| e.support)
     }
 
-    fn get_tree_branch_length(&self) -> Option<f64> {
+    fn tree_branch_length(&self) -> Option<f64> {
         self.virtual_root.as_ref().and_then(|e| e.branch_length)
     }
 
-    fn get_children(
+    fn children(
         &self,
         parent: Self::NodeId,
         node: Self::NodeId,
@@ -571,7 +571,7 @@ impl TreeSerialize for NTree {
         })
     }
 
-    fn get_label(&self, node: &Self::NodeId) -> Option<&String> {
+    fn label(&self, node: &Self::NodeId) -> Option<&String> {
         self.nodes[*node].label.as_ref()
     }
 }

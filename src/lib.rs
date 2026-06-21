@@ -87,26 +87,26 @@ pub trait TreeSerialize {
     type NodeId: Copy;
 
     /// Get the (virtual) root node of the tree.
-    fn get_virtual_root(&self) -> Option<Self::NodeId>;
+    fn virtual_root(&self) -> Option<Self::NodeId>;
 
     /// Get the support value of the tree, which is stored as the name of the root node.
     /// If the implementing type does not support this, it should return None.
-    fn get_tree_support(&self) -> Option<f64>;
+    fn tree_support(&self) -> Option<f64>;
 
     /// Newick does allow the root to have a branch length, even though this information is not
     /// associated with any edge in the tree.
     /// If the implementing type does not support this, it should return None.
-    fn get_tree_branch_length(&self) -> Option<f64>;
+    fn tree_branch_length(&self) -> Option<f64>;
 
     /// Get the children of a node in the tree, given the parent node. The iterator must not
     /// include an edge to the parent node.
     /// The iterator returns tuples of the form (child_node_id, support, branch_length).
-    fn get_children(
+    fn children(
         &self,
         parent: Self::NodeId,
         node: Self::NodeId,
     ) -> impl Iterator<Item = (&Self::NodeId, Option<f64>, Option<f64>)>;
 
     /// Get the label of a node in the tree.
-    fn get_label(&self, node: &Self::NodeId) -> Option<&String>;
+    fn label(&self, node: &Self::NodeId) -> Option<&String>;
 }
