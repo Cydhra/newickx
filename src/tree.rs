@@ -338,7 +338,7 @@ impl NTree {
                     if let Some((child_id, child_support, child_branch_length)) = children.next() {
                         stack.push(((parent_id, node_id, support, branch_length), children));
                         stack.push((
-                            (node_id, *child_id, child_support.clone(), child_branch_length.clone()),
+                            (node_id, *child_id, child_support, child_branch_length),
                             self.children(node_id, *child_id),
                         ));
                     } else {

@@ -78,7 +78,7 @@ impl<T: TreeSerialize> Serializer<T> {
         branch_length: Option<f64>,
     ) {
         if let Some(label) = label
-            && (!support.is_some() || settings.prefer_labels)
+            && (support.is_none() || settings.prefer_labels)
         {
             // remove illegal newline symbols and replace them with normal whitespace to be handled
             // by the whitespace policy
