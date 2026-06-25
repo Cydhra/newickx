@@ -1,7 +1,12 @@
-# Minimal Newick Parser
-A minimal newick parser that constructs a simple adjacency-list-based tree structure, or can construct arbitrary tree types via a builder trait.
-The built-in tree structure is lightweight (no overhead that is not defined in Newick), implements `Send` and `Sync`, and supports modification.
-The parser is a fast LL(1) single-pass parser without recursion to avoid memory problems during parsing.
+# Flexible Newick Parser
+A minimal newick parser designed for maximum flexibility.
+By default, it constructs a simple adjacency-list-based tree structure.
+This built-in tree structure is lightweight (no overhead that is not required for Newick), implements `Send` and `Sync`, and fully supports modification.
+But the parser can also be used to construct arbitrary types using a simple builder trait.
+The parser is a fast LL(1) single-pass parser without recursion for speed and lower memory footprint.
+
+A serializer is provided to convert trees back into Newick format. 
+The same philosophy of flexibility is applied here, allowing downstream crates to control certain ambiguities in the Newick format.
 
 # Usage
 In the simplest case, construct a `Parser` with a `SimpleTreeBuilder` and call `parse()` until `Ok(None)` is returned,
@@ -26,6 +31,7 @@ let mut parser = Parser::with_settings(
 The `SimpleTreeBuilder` constructs `NTree` instances which is a simple tree structure based on doubly-linked Nodes.
 It does not calculate or store extraneous information, and is designed to be a lightweight and flexible tree structure.
 
-The only optimization can be enabled with the crate feature `smallvec`, which optimizes the tree structure for binary trees using the smallvec crate.
+An optional optimization can be enabled with the crate feature `smallvec`, which optimizes the tree structure for binary trees using the smallvec crate.
 
 If you want to parse Newick into your own tree structure, simply implement the `TreeBuilder` trait and give the parser an instance of your implementation instead of a `SimpleTreeBuilder`. 
+The analogue `TreeSerialize` trait enables serialization using the built-in `Serializer`.
