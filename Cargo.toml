@@ -10,7 +10,7 @@ keywords = ["bio", "bioinformatics", "phylogenetics", "newick", "tree"]
 categories = ["parser-implementations", "data-structures", "science", "science::bioinformatics"]
 
 [dependencies]
-snafu = "0.9.0"
+snafu = "0.9.1"
 smallvec = { version = "1.15.0", optional = true }
 
 [features]
