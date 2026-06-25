@@ -459,18 +459,16 @@ impl TreeNode {
 pub struct DirectedEdge {
     target: NodeId,
 
-    // TODO we probably don't need this public
     /// Branch support value.
     /// Newick stores these at nodes, but during parsing the support value is assigned to the edge.
     /// If the node that this support value belongs to (the node closer to the leaves with respect to the tree root)
     /// has a node label, this branch support value cannot be represented in Newick.
     /// Note that changing the support value must be mirrored on the reverse edge, otherwise the tree is malformed.
-    pub support: Option<f64>,
+    pub(crate) support: Option<f64>,
 
-    // TODO we probably don't need this public
     /// Length of the branch.
     /// Note that changing the length must be mirrored on the reverse edge, otherwise the tree is malformed.
-    pub branch_length: Option<f64>,
+    pub(crate) branch_length: Option<f64>,
 }
 
 impl DirectedEdge {
@@ -487,6 +485,18 @@ impl DirectedEdge {
     /// Returns the target node ID of the edge.
     pub fn target(&self) -> NodeId {
         self.target
+    }
+
+    /// Branch support value.
+    /// Newick stores these at nodes, but during parsing the support value is assigned to the edge.
+    pub fn support(&self) -> Option<f64> {
+        self.support
+    }
+
+    /// Length of the branch.
+    /// Newick stores these at nodes, but during parsing the length value is assigned to the edge.
+    pub fn branch_length(&self) -> Option<f64> {
+        self.branch_length
     }
 }
 
