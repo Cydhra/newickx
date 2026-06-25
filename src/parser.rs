@@ -67,9 +67,9 @@ pub enum ParseError {
 /// # Example
 /// ```
 /// use std::default;
-/// use nitro_newick::config::Settings;
-/// use nitro_newick::parser::Parser;
-/// use nitro_newick::tree::SimpleTreeBuilder;
+/// use newickx::config::Settings;
+/// use newickx::parser::Parser;
+/// use newickx::tree::SimpleTreeBuilder;
 ///
 /// let newick = "(A, B, (D, E):0.2)The_Root;";
 /// let mut parser = Parser::new(newick.as_bytes(), SimpleTreeBuilder::new());

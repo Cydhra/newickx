@@ -115,11 +115,11 @@ impl<T: TreeSerialize> Serializer<T> {
     ///
     /// # Example
     /// ```
-    /// # use nitro_newick::config::QuotationMode::Always;
-    /// # use nitro_newick::config::Settings;
-    /// # use nitro_newick::parser::Parser;
-    /// # use nitro_newick::serializer::Serializer;
-    /// # use nitro_newick::tree::SimpleTreeBuilder;
+    /// # use newickx::config::QuotationMode::Always;
+    /// # use newickx::config::Settings;
+    /// # use newickx::parser::Parser;
+    /// # use newickx::serializer::Serializer;
+    /// # use newickx::tree::SimpleTreeBuilder;
     /// let newick = "((A_A));";
     /// let tree = Parser::new(newick.as_bytes(), SimpleTreeBuilder::new()).parse().unwrap().unwrap();
     /// let serializer = Serializer::with_settings(Settings::default().use_quoted_strings(Always));

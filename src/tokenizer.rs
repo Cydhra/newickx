@@ -96,8 +96,8 @@ impl Display for Token {
 /// with the Newick encoding reversed.
 ///
 /// ```
-/// use nitro_newick::tokenizer::{Tokenizer, Token};
-/// use nitro_newick::tokenizer::Token::*;
+/// use newickx::tokenizer::{Tokenizer, Token};
+/// use newickx::tokenizer::Token::*;
 ///
 /// let newick = "(A, B);";
 /// let mut tokenizer = Tokenizer::new(newick.as_bytes());
@@ -127,7 +127,7 @@ impl<R: Read> Tokenizer<R> {
     ///
     /// # Example
     /// ```
-    /// # use nitro_newick::tokenizer::{Tokenizer, Token};
+    /// # use newickx::tokenizer::{Tokenizer, Token};
     ///
     /// let newick = "(((A1,A2)10,(B1,B2)20)30,(C1,C2)30,(D1,D2)40);";
     /// let mut tokenizer = Tokenizer::new(newick.as_bytes());
@@ -144,8 +144,8 @@ impl<R: Read> Tokenizer<R> {
     ///
     /// # Example
     /// ```
-    /// # use nitro_newick::config::Settings;
-    /// # use nitro_newick::tokenizer::{Tokenizer, Token};
+    /// # use newickx::config::Settings;
+    /// # use newickx::tokenizer::{Tokenizer, Token};
     ///
     /// let newick = "A_B_C";
     /// let mut tokenizer =
@@ -171,8 +171,8 @@ impl<R: Read> Tokenizer<R> {
     ///
     /// # Example
     /// ```
-    /// # use nitro_newick::config::Settings;
-    /// # use nitro_newick::tokenizer::{Tokenizer, Token};
+    /// # use newickx::config::Settings;
+    /// # use newickx::tokenizer::{Tokenizer, Token};
     ///
     /// let newick = "A_B_C";
     /// let mut tokenizer = Tokenizer::new(newick.as_bytes());
@@ -193,8 +193,8 @@ impl<R: Read> Tokenizer<R> {
     ///
     /// # Example
     /// ```
-    /// # use nitro_newick::config::Settings;
-    /// # use nitro_newick::tokenizer::{Tokenizer, Token};
+    /// # use newickx::config::Settings;
+    /// # use newickx::tokenizer::{Tokenizer, Token};
     ///
     /// let newick = "A_B_C";
     /// let mut tokenizer = Tokenizer::new(newick.as_bytes());
