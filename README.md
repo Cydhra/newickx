@@ -35,3 +35,39 @@ An optional optimization can be enabled with the crate feature `smallvec`, which
 
 If you want to parse Newick into your own tree structure, simply implement the `TreeBuilder` trait and give the parser an instance of your implementation instead of a `SimpleTreeBuilder`. 
 The analogue `TreeSerialize` trait enables serialization using the built-in `Serializer`.
+
+# Manipulation
+The `NTree` type which serves as a minimal tree structure can be manipulated with all common tree operations.
+Here are some examples for various operations.
+Refer to the documentation to find the full API.
+
+```rs
+// Traversal:
+let order = tree.postorder(tree.virtual_root().unwrap());
+let order = tree.preorder(tree.virtual_root().unwrap());
+let ordered_nodes = tree.traverse(order).collect::<Vec<_>>();
+
+// Rooting:
+tree.reroot(new_root_id);
+
+// Node manipulation
+// add a new node with a label and no support value, and an expected number of edges
+let new_node_id = tree.add_node(Some("new node"), 1);
+
+// connect it to the root with a branch length of 0.44 and no support value:
+tree.add_edge(tree.virtual_root()?, new_node_id, None, Some(0.44));
+
+// add a support value to the edge at a later point:
+tree.update_edge(tree.virtual_root()?, new_node_id, Some(90.0), Some(0.44));
+```
+
+If a node has a label and a support value at the same time, the serializer has to prefer one of them.
+This behavior can be configured.
+
+# Serialization
+Serialization works with an analogous type to parsing, and takes the same settings object.
+For example, this is how to serialize a tree while preferring labels to support values for nodes that have both.
+```rs
+let serializer = Serializer::with_settings(Settings::default().prefer_labels(true));
+let converted = serializer.serialize(&tree);
+```
