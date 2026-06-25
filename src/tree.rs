@@ -505,6 +505,7 @@ impl DirectedEdge {
 /// [`TreeBuilder`]: crate::TreeBuilder
 /// [`Parser`]: crate::parser::Parser
 /// [`NTree`]: NTree
+#[derive(Default)]
 pub struct SimpleTreeBuilder {
     tree: NTree,
 }
@@ -512,7 +513,7 @@ pub struct SimpleTreeBuilder {
 impl SimpleTreeBuilder {
     /// Creates a new `SimpleTreeBuilder` with no nodes.
     pub fn new() -> Self {
-        SimpleTreeBuilder { tree: NTree::new() }
+        SimpleTreeBuilder { tree: NTree::default() }
     }
 
     /// Creates a new `SimpleTreeBuilder` with the specified node capacity, ensuring no reallocation
