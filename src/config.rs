@@ -54,6 +54,7 @@ pub struct Settings {
     pub(crate) translate_underscores: bool,
     pub(crate) use_quoted_strings: QuotationMode,
     pub(crate) prefer_labels: bool,
+    pub(crate) floating_point_precision: usize,
 }
 
 impl Default for Settings {
@@ -62,6 +63,7 @@ impl Default for Settings {
             translate_underscores: true,
             use_quoted_strings: Never,
             prefer_labels: false,
+            floating_point_precision: 6,
         }
     }
 }
@@ -93,6 +95,13 @@ impl Settings {
     #[inline]
     pub fn prefer_labels(mut self, prefer_labels: bool) -> Self {
         self.prefer_labels = prefer_labels;
+        self
+    }
+
+    /// Controls the number of digits after the decimal point for branch lengths.
+    #[inline]
+    pub fn floating_point_precision(mut self, floating_point_precision: usize) -> Self {
+        self.floating_point_precision = floating_point_precision;
         self
     }
 }
