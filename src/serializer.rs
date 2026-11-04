@@ -107,7 +107,7 @@ impl<T: TreeSerialize> Serializer<T> {
         }
 
         if let Some(branch_length) = branch_length {
-            result.push_str(&format!(":{}", branch_length));
+            result.push_str(&format!(":{:.*}", settings.floating_point_precision, branch_length));
         }
     }
 
