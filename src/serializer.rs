@@ -21,7 +21,8 @@ use std::marker::PhantomData;
 /// Space can be handled differently than the other characters, see [`QuotationMode`].
 ///
 /// [`QuotationMode`]: QuotationMode
-pub const NEWICK_RESERVED_CHARACTERS: [char; 10] = [' ', '_', '\'', ';', ',', '(', ')', ':', '[', ']'];
+pub const NEWICK_RESERVED_CHARACTERS: [char; 10] =
+    [' ', '_', '\'', ';', ',', '(', ')', ':', '[', ']'];
 
 /// Characters not allowed in unquoted Newick strings since they have meaning in Newick itself, other than whitespace.
 /// Spaces have no meaning outside of strings other than to split tokens.
@@ -30,7 +31,8 @@ pub const NEWICK_RESERVED_CHARACTERS: [char; 10] = [' ', '_', '\'', ';', ',', '(
 /// The reserved characters are: `_`, `'`, `;`, `,`, `(`, `)`, `:`, `[`, `]`.
 ///
 /// [`QuotationMode`]: QuotationMode
-pub const NEWICK_RESERVED_CHARACTERS_NO_SPACE: [char; 9] = ['_', '\'', ';', ',', '(', ')', ':', '[', ']'];
+pub const NEWICK_RESERVED_CHARACTERS_NO_SPACE: [char; 9] =
+    ['_', '\'', ';', ',', '(', ')', ':', '[', ']'];
 
 /// A struct representing a node in the tree during serialization.
 #[derive(Debug, Clone)]
@@ -85,7 +87,9 @@ impl<T: TreeSerialize> Serializer<T> {
             let label = label.replace(['\n', '\r'], " ");
 
             match settings.use_quoted_strings {
-                QuotationMode::Always => result.push_str(&format!("'{}'", label.replace('\'', "''"))),
+                QuotationMode::Always => {
+                    result.push_str(&format!("'{}'", label.replace('\'', "''")))
+                }
                 QuotationMode::PreferUnquoted => {
                     if label.contains(NEWICK_RESERVED_CHARACTERS_NO_SPACE) {
                         result.push_str(&format!("'{}'", label.replace('\'', "''")))
@@ -100,14 +104,16 @@ impl<T: TreeSerialize> Serializer<T> {
                         result.push_str(&label)
                     }
                 }
-                QuotationMode::Never => result.push_str(&label.replace(NEWICK_RESERVED_CHARACTERS, "_")),
+                QuotationMode::Never => {
+                    result.push_str(&label.replace(NEWICK_RESERVED_CHARACTERS, "_"))
+                }
             }
         } else if let Some(support) = support {
             result.push_str(&format!("{}", support));
         }
 
         if let Some(branch_length) = branch_length {
-            result.push_str(&format!(":{:.*}", settings.floating_point_precision, branch_length));
+            result.push_str(&format!(":{:.*}", settings.output_precision, branch_length));
         }
     }
 
@@ -247,7 +253,9 @@ mod tests {
         let stream = File::open(path).expect("Could not open file");
         let mut newick = String::new();
         let mut reader = std::io::BufReader::new(stream);
-        reader.read_to_string(&mut newick).expect("Could not read file");
+        reader
+            .read_to_string(&mut newick)
+            .expect("Could not read file");
         let mut parser = Parser::new(newick.as_bytes(), SimpleTreeBuilder::new());
         let tree = parser.parse().unwrap().expect("Parse Error");
         let serializer = Serializer::<NTree>::new();
@@ -261,7 +269,13 @@ mod tests {
             let settings = Settings::default().use_quoted_strings(setting);
 
             let mut result = String::new();
-            Serializer::<NTree>::push_node_data(&settings, &mut result, Some(&"A_B C".to_string()), None, None);
+            Serializer::<NTree>::push_node_data(
+                &settings,
+                &mut result,
+                Some(&"A_B C".to_string()),
+                None,
+                None,
+            );
 
             assert_eq!(
                 expected, result,
@@ -276,16 +290,34 @@ mod tests {
         let settings = Settings::default().use_quoted_strings(Always);
 
         let mut result = String::new();
-        Serializer::<NTree>::push_node_data(&settings, &mut result, Some(&"A'B".to_string()), None, None);
+        Serializer::<NTree>::push_node_data(
+            &settings,
+            &mut result,
+            Some(&"A'B".to_string()),
+            None,
+            None,
+        );
         assert_eq!("'A''B'", result);
 
         let settings = Settings::default().use_quoted_strings(Dynamic);
         result.clear();
-        Serializer::<NTree>::push_node_data(&settings, &mut result, Some(&"A'B_".to_string()), None, None);
+        Serializer::<NTree>::push_node_data(
+            &settings,
+            &mut result,
+            Some(&"A'B_".to_string()),
+            None,
+            None,
+        );
         assert_eq!("'A''B_'", result);
 
         result.clear();
-        Serializer::<NTree>::push_node_data(&settings, &mut result, Some(&"A'B".to_string()), None, None);
+        Serializer::<NTree>::push_node_data(
+            &settings,
+            &mut result,
+            Some(&"A'B".to_string()),
+            None,
+            None,
+        );
         assert_eq!("'A''B'", result);
     }
 
@@ -295,7 +327,13 @@ mod tests {
         let settings = Settings::default().use_quoted_strings(Dynamic);
 
         let mut result = String::new();
-        Serializer::<NTree>::push_node_data(&settings, &mut result, Some(&"AB".to_string()), None, None);
+        Serializer::<NTree>::push_node_data(
+            &settings,
+            &mut result,
+            Some(&"AB".to_string()),
+            None,
+            None,
+        );
 
         assert_eq!("AB", result);
     }
@@ -304,7 +342,13 @@ mod tests {
     fn test_auto_quotation(mode: QuotationMode, char: &str) {
         let settings = Settings::default().use_quoted_strings(mode);
         let mut result = String::new();
-        Serializer::<NTree>::push_node_data(&settings, &mut result, Some(&char.to_string()), None, None);
+        Serializer::<NTree>::push_node_data(
+            &settings,
+            &mut result,
+            Some(&char.to_string()),
+            None,
+            None,
+        );
         assert_eq!(format!("'{char}'"), result);
     }
 
@@ -325,7 +369,13 @@ mod tests {
 
         let settings = Settings::default().use_quoted_strings(PreferUnquoted);
         let mut result = String::new();
-        Serializer::<NTree>::push_node_data(&settings, &mut result, Some(&" ".to_string()), None, None);
+        Serializer::<NTree>::push_node_data(
+            &settings,
+            &mut result,
+            Some(&" ".to_string()),
+            None,
+            None,
+        );
         assert_eq!("_".to_string(), result);
     }
 

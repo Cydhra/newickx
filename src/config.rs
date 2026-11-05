@@ -54,7 +54,7 @@ pub struct Settings {
     pub(crate) translate_underscores: bool,
     pub(crate) use_quoted_strings: QuotationMode,
     pub(crate) prefer_labels: bool,
-    pub(crate) floating_point_precision: usize,
+    pub(crate) output_precision: usize,
 }
 
 impl Default for Settings {
@@ -63,7 +63,7 @@ impl Default for Settings {
             translate_underscores: true,
             use_quoted_strings: Never,
             prefer_labels: false,
-            floating_point_precision: 6,
+            output_precision: 6,
         }
     }
 }
@@ -98,10 +98,10 @@ impl Settings {
         self
     }
 
-    /// Controls the number of digits after the decimal point for branch lengths.
+    /// Controls the number of digits after the decimal point for branch lengths in output files.
     #[inline]
-    pub fn floating_point_precision(mut self, floating_point_precision: usize) -> Self {
-        self.floating_point_precision = floating_point_precision;
+    pub fn output_precision(mut self, output_precision: usize) -> Self {
+        self.output_precision = output_precision;
         self
     }
 }
